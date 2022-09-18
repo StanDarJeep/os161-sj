@@ -1,0 +1,278 @@
+Step 4:
+
+1.
+stzhao2@ssh-linux3:~/os161/root$ sys161 kernel
+sys161: System/161 release 2.0.3, compiled Aug 10 2015 13:31:07
+
+OS/161 base system version 1.99.08
+Copyright (c) 2000, 2001-2005, 2008-2011, 2013, 2014
+   President and Fellows of Harvard College.  All rights reserved.
+
+Put-your-group-name-here's system version 0 (DUMBVM #1)
+
+292k physical memory available
+Device probe...
+lamebus0 (system main bus)
+emu0 at lamebus0
+ltrace0 at lamebus0
+ltimer0 at lamebus0
+beep0 at ltimer0
+rtclock0 at ltimer0
+lrandom0 at lamebus0
+random0 at lrandom0
+lhd0 at lamebus0
+lhd1 at lamebus0
+lser0 at lamebus0
+con0 at lser0
+
+cpu0: MIPS/161 (System/161 2.x) features 0x0
+OS/161 kernel [? for menu]:
+
+2.
+stzhao2@ssh-linux3:~/os161/src$ git log
+commit 6735698b6882f5babc958fff6e9f32a6a1aeba58 (HEAD -> master, tag: asst1-start, origin/master)
+Author: Stanley Zhao <stzhao2@ssh-linux3.ece.ubc.ca>
+Date:   Wed Sep 14 18:59:05 2022 -0700
+
+    Initial commit of os161 for CPEN331
+
+stzhao2@ssh-linux3:~/os161/src$ git tag
+asst1-start
+
+Step 5:
+
+Question 1:
+The first line of OS/161 code that is executed when a trap occurs is line 86 of src/kern/arch/mips/locore/exception-mips1.S, the
+mips_general_handler. From there, control gets transferred to the mips_trap in src/kern/arch/mips/locore/trap.c. As for an interrupt,
+the control flow is the same up until this point, as it is considered a type of trap. How it differs from a regular trap is that in
+mips_trap, as an interrupt is passed in the function, it will invoke mainbus_interrupt in src/kern/arch/sys161/dev/lamebus_machdep.c.
+
+Question 2:
+The OS/161 code that invokes system calls from user programs is located in src/userland/lib/libc/arch/mips/syscalls-mips.S.
+Specifically on lines 83-94. When OS/161 is built, this file is copied to src/build/userland/lib/libc/syscalls.S along with the actual
+syscall definitions appended. Control flow is then passed to the syscall function in src/kern/arch/mips/syscall/syscall.c.
+
+Question 3:
+There are libc functions in common/libc and userland/lib/libc because whereas there are C standard library functions that are used by
+both user-level programs and kernel threads, there is also a number of C standard library functions that are used solely by user-level
+programs. In order to preserve encapsulation, the C standard library functions that are not needed by the kernel threads are kept
+separately within userland for user-level access only. This reasoning is supported by the fact that there exists no overlap between the
+functions stored in common and userland.
+
+Question 4:
+The configure script can configure the hardware platform type and the machine type that is being built. The configuration may be
+invalidated if the targeted hardware platform/machine type combination is not supported. In our case the only supported combination is
+sys161 mips as described on line 385 of src/mk/os161.config.mk. You will need to rerun the script if you need any changes to be made to
+the existing configuration. The script will also need to be rerun if it is not called from the top of the OS/161 tree.
+
+Question 5:
+The details that would make a function "machine-dependent" are very low-level features exclusive to the specific instruction set
+architecture that is being used. These details include machine-specific constants such as those found in src/kern/arch/mips/include/,
+which include processor register numbers, integer types, exception codes, etc. It is important to maintain this separation because the
+functions (usually the more lower-level ones) that require machine-specific features will need to be overriden in the event that
+another instruction set architecture would need to be supported in the future. Putting all the code into one function would make it
+unclear to the developer that this function needs to be overriden in order to support other instruction set architectures.
+
+Question 6:
+A trapframe is 148 bytes, which can be seen in the trapframe struct in src/kern/arch/mips/include/trapframe.h. This is because a
+trapframe captures the state of the registers of the thread when an interrupt occurs. Since there are 37 registers in total, each 4
+bytes large, this means the trapframe must be 148 bytes large.
+
+Question 7:
+The config script (src/kern/conf/config) should be re-run when there is some change in the hardware. Also, when new files need to be
+added to the system, this script needs to be modified and re-run.
+
+Question 8:
+bmake depend should be run whenever there is any change that is made to the dependencies (e.g. header file includes).
+
+Question 9:
+bmake will need to be run whenever changes are made to the source code, and this will recompile the system. bmake install should be
+run afterwards in order to actually build the system.
+
+Question 10:
+The definitions of the kernel command functions, as well as the functions that process the user input, are found in 
+src/kern/main/menu.c. The menu function continuously loops and queries for new user input, running menu_execute to evaluate the
+command line input, which then calls cmd_dispatch that uses a lookup table in order to run the correct function. In order to add a
+command that prints "Hello world!", first the function needs to be defined in src/kern/main/menu.c, with the same input and return
+parameters as the other existing functions. Then, this function and its respective user input that calls the command will need to be
+added to the cmdtable struct.
+
+Question 11:
+The files in userland/include/ and userland/lib/ need to be included in OS/161 because many of these files contain crucial definitions
+that are necessary for our system to compile and build. Examples include string function declarations in src/userland/include/string.h,
+the entire stdio library in src/userland/include/stdio.h, and the malloc function definition in src/userland/lib/libc/stdlib/malloc.c.
+We cannot use the standard utilities present on the host machine on principle of virtualization; the OS/161 system is meant to be a
+standalone system that is able to be run independently, and so should contain these libraries innately.
+
+Question 12:
+It is noted in src/userland/lib/crt0/mips/crt0.S that when the main function of the user program returns (i.e. when the user program
+exits), the return value of the program is saved to the s0 register, which is a callee-saved register, in case the exit function
+returns.
+
+Question 13:
+List of code modifications needed to add a new system call:
+- A new file with the system call source code should be added to src/kern/syscall/
+- The system call number needs to be defined in src/kern/include/kern/syscall.h (if not added already, as there are already many
+  placeholder constants included)
+- In the switch statement of line 102 in src/kern/arch/mips/syscall/syscall.c, logic needs to be added in order to process the above
+  defined system call number. The logic would simply call the system call function from the added file in src/kern/syscall/, and
+  save the error number
+
+After making these changes, the src/kern/conf/config script needs to be re-run as a new file has been added. Then, bmake depend should
+be re-run for dependency changes. Finally, run bmake in order to compile the code, and bmake install in order to build the system.
+
+Question 14:
+The very first function that executes when OS161 starts up is called strcpy, called from line 93 in src/kern/arch/sys161/main/start.S.
+
+(gdb) db
+__start () at ../../arch/sys161/main/start.S:54
+54         addiu sp, sp, -24
+(gdb) s
+55         sw ra, 20(sp)
+(gdb) s
+89         la s0, _end          /* stash _end in a saved register */
+(gdb) s
+92         move a0, s0          /* make _end the first argument */
+(gdb) s
+93         jal strcpy           /* call strcpy(_end, bootstring) */
+
+Question 15:
+The very first assembly instruction that executes is addiu sp, sp, -24, located on line 54 in src/kern/arch/sys161/main/start.S.
+
+(gdb) target remote unix:.sockets/gdb
+Remote debugging using unix:.sockets/gdb
+__start () at ../../arch/sys161/main/start.S:54
+54         addiu sp, sp, -24
+
+Question 16:
+(gdb) break kmain
+Breakpoint 1 at 0x800139e4: file ../../main/main.c, line 211.
+(gdb) c
+Continuing.
+
+Breakpoint 1, kmain (arguments=0x80035c20 "") at ../../main/main.c:211
+211             boot();
+(gdb) n
+213             menu(arguments);
+(gdb) break
+Breakpoint 2 at 0x800139ec: file ../../main/main.c, line 213.
+(gdb) info break
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep y   0x800139e4 in kmain at ../../main/main.c:211
+        breakpoint already hit 1 time
+2       breakpoint     keep y   0x800139ec in kmain at ../../main/main.c:213
+
+Question 17:
+- Beginning of program execution.
+- A dummy stack frame is set up for use by gdb.
+- The boot stack is set up.
+- The stack frame is set up on the real kernel.
+- Exception handler code is copied onto the first page of memory.
+- Instruction cache is flushed
+- TLB is initialized
+- Several registers are loaded with their required values; this includes the curthread, status, CONTEXT, and GP registers.
+- kmain is invoked.
+
+Question 18:
+The assembly language instruction that calls the kernel main function is jal kmain, located on line 215 of
+src/kern/arch/sys161/main/start.S.
+
+Question 19:
+
+The boot function first calls several print functions that display information about the system. Then, bootstrapping functions are
+called which initializes several systems such as ram, processes, threads, virtual file system. After that, the system bus is
+initialized, probing and initializing system devices and pseudo-devices. Then the VM and kprintf function is initialized, the bootfs
+vnode is set up, and some checks are run to ensure nothing went wrong.
+
+(gdb) s
+boot () at ../../main/main.c:99
+99              kprintf("\n");
+(gdb) n
+100             kprintf("OS/161 base system version %s\n", BASE_VERSION);
+(gdb) n
+101             kprintf("%s", harvard_copyright);
+(gdb) n
+102             kprintf("\n");
+(gdb) n
+104             kprintf("Put-your-group-name-here's system version %s (%s #%d)\n",
+(gdb) n
+106             kprintf("\n");
+(gdb) n
+109             ram_bootstrap();
+(gdb) n
+110             proc_bootstrap();
+(gdb) n
+111             thread_bootstrap();
+(gdb) n
+112             hardclock_bootstrap();
+(gdb) n
+113             vfs_bootstrap();
+(gdb) n
+114             kheap_nextgeneration();
+(gdb) n
+117             kprintf("Device probe...\n");
+(gdb) n
+118             KASSERT(curthread->t_curspl > 0);
+(gdb) n
+119             mainbus_bootstrap();
+(gdb) n
+120             KASSERT(curthread->t_curspl == 0);
+(gdb) n
+122             pseudoconfig();
+(gdb) n
+123             kprintf("\n");
+(gdb) n
+124             kheap_nextgeneration();
+(gdb) n
+127             vm_bootstrap();
+(gdb) n
+128             kprintf_bootstrap();
+(gdb) n
+129             thread_start_cpus();
+(gdb) n
+132             vfs_setbootfs("emu0");
+(gdb) n
+134             kheap_nextgeneration();
+(gdb) n
+141     }
+(gdb) n
+kmain (arguments=0x80035c20 "") at ../../main/main.c:213
+213             menu(arguments);
+
+Question 20:
+
+Breakpoint 1, thread_bootstrap () at ../../thread/thread.c:357
+357             cpuarray_init(&allcpus);
+(gdb) p *bootcpu
+Cannot access memory at address 0x80000
+
+Question 21:
+
+(gdb) n
+367             bootcpu = cpu_create(0);
+(gdb) n
+368             bootthread = bootcpu->c_curthread;
+(gdb) p *bootcpu
+$1 = {c_self = 0x8003af00, c_number = 0, c_hardware_number = 0, c_curthread = 0x8003bf80, c_zombies = {tl_head = {tln_prev = 0x0, tln_next = 0x8003\
+af1c, tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af10, tln_next = 0x0, tln_self = 0x0}, tl_count = 0}, c_hardclocks = 0, c_spinlocks = 0, c_isidl\
+e = false, c_runqueue = {tl_head = {tln_prev = 0x0, tln_next = 0x8003af44, tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af38, tln_next = 0x0, tln_s\
+elf = 0x0}, tl_count = 0}, c_runqueue_lock = {splk_lock = 0, splk_holder = 0x0}, c_ipi_pending = 0, c_shootdown = {{ts_placeholder = 0} <repeats 16\
+ times>}, c_numshootdown = 0, c_ipi_lock = {splk_lock = 0, splk_holder = 0x0}}
+
+Question 22:
+Breakpoint 1, kmain (arguments=0x80035c20 "") at ../../main/main.c:211
+211             boot();
+(gdb) cpuarray allcpus
+0 cpus
+
+Question 23:
+(gdb) n
+213             menu(arguments);
+(gdb) cpuarray allcpus
+1 cpus
+cpu 0:
+$1 = {c_self = 0x8003af00, c_number = 0, c_hardware_number = 0, c_curthread = 0x8003bf80, c_zombies = {tl_head = {tln_prev = 0x0, tln_next = 0x8003\
+af1c, tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af10, tln_next = 0x0, tln_self = 0x0}, tl_count = 0}, c_hardclocks = 1, c_spinlocks = 0, c_isidl\
+e = false, c_runqueue = {tl_head = {tln_prev = 0x0, tln_next = 0x8003af44, tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af38, tln_next = 0x0, tln_s\
+elf = 0x0}, tl_count = 0}, c_runqueue_lock = {splk_lock = 0, splk_holder = 0x0}, c_ipi_pending = 0, c_shootdown = {{ts_placeholder = 0} <repeats 16\
+ times>}, c_numshootdown = 0, c_ipi_lock = {splk_lock = 0, splk_holder = 0x0}}
