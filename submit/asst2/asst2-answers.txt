@@ -1,0 +1,52 @@
+Step 2:
+
+Question 1:
+When a thread exits it calls the thread_exit() function, which will detach from the current process, checks the stack, turns interrupts
+off and creates a zombie thread, awaiting the exorcise() function to be called in order to clean it up.
+
+When a thread sleeps it calls the wchan_sleep() function, which will then yield the cpu to another process, and go to sleep, on the
+specified wait channel WC, whose associated spinlock is LK. Calling a wake function on the channel will make the thread runnable again.
+
+Question 2:
+thread_switch() in src/kern/thread/thread.c.
+
+Question 3:
+Each possible thread state is represented by the threadstate_t enum, which describes them as the following:
+	S_RUN,		/* running */
+	S_READY,	/* ready to run */
+	S_SLEEP,	/* sleeping */
+	S_ZOMBIE,	/* zombie; exited but not yet deleted */
+
+Question 4:
+Turning interrupts off means the current process cannot be interrupted. This is accomplished by invoking the splhigh() function. It is
+important to turn interrupts off as this will prevent context switches from occurring while the thread is executing during critical
+sections, preventing race conditions from potentially occurring.
+
+Question 5:
+A thread can wake up another sleeping thread through the wchan_wakeone() function. This function signals a thread which is waiting on
+the specified wchan, allowing them to run again through the thread_make_runnable() function.
+
+Question 6:
+schedule() in src/kern/thread/thread.c.
+
+Question 7:
+The functionality is to be implemented, however the default is to run the threads in a round-robin fashion without priorities.
+
+Question 8:
+The role that the hardware timer plays in scheduling is that it will cause a context switch upon reaching a certain value,
+effectively implementing a timeout condition for processes. The hardware independent function called on a timer interrupt is
+hardclock(), in src/kern/thread/hardclock.c. We see that hardclock calls thread_yield(), which achieves the aforementioned
+functionality.
+
+Question 9:
+wchan_sleep() and wchan_wakeone() are crucial for allowing threads to both sleep and wake on a wake channel, which is needed for
+semaphore functionality as they are called in the P() and V() functions respectively in src/kern/thread/synch.c. Specifically, when P()
+is called, wchan_sleep() will cause the current thread to sleep until the semaphore resource is available, and this thread would wake
+once wchan_wakeone() is called on that same wait channel during the invocation of V(), which is the basic implementation of a
+semaphore.
+
+Question 10:
+In order to prevent the thread going to sleep from missing the wakeup signal, the OS161 wchan functions need to acquire the semaphore
+spinlock. Thus, there cannot be a context switch between the operations of the thread releasing the spinlock and the thread going to
+sleep, as the wake function requires that same spinlock in order to progress. Hence this race condition is avoided, and the wake
+function is guaranteed to be called after the first thread is already asleep.
