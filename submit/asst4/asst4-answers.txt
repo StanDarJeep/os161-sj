@@ -1,0 +1,63 @@
+Step 2:
+
+Question 1:
+The ELF magic numbers, i.e. 0x7F, ‘E’, ‘L’, ‘F’, are used to indicate that the file is of .elf format.
+
+Question 2:
+UIO_USERISPACE indicates that the pointer points to user level executable code in memory, UIO_USERSPACE indicates that the pointer
+points to user level data. UIO_SYSSPACE should be used for indicating that the pointer is of kernel data.
+
+Question 3:
+The memory read actually goes to the virtual address. Since the virtual address is on the heap, uio can be allocated on the stack
+because this struct is used for transferring data, and does not consist of the actual data and its destination.
+
+Question 4:
+The program has already been loaded by load_elf() by the time we call vfs_close(), thus we don’t need the file to be open anymore. This
+is important for security and for preventing memory leaks.
+
+Question 5:
+enter_new_program() is the function that forces the processor to switch into usermode, and it is machine dependent because it calls
+mips_usermode, which is specific to MIPS architecture.
+
+Question 6:
+copyin() and copyout() are defined in kern/vm/copyinout.c while memmove() is defined in common/libc/string/memmove.c. copyin() and
+copyout() cannot simply call memmove() because the former functions involve moving data between kernel space and user space, and thus
+they must ensure that input addresses are valid and fall within either space as is appropriate.
+
+Question 7:
+userptr_t is used as a pointer to a one-byte struct, and this is used to indicate that the memory to which it points is within user
+space.
+
+Question 8:
+The exception code for a MIPS system call is given by EX_SYS, defined to be 8 in trapframe.h
+
+Question 9:
+The program counter must be incremented by one instruction upon syscall return. The line tf->tf_epc += 4 shows the program counter
+getting incremented, so the size of an instruction is 4 bytes or 32 bits.
+
+Question 10:
+kill_curthread() currently calls a kernel panic when the user mode program hits a fault. Instead it should handle the fault
+appropriately. Also it does not even actually kill the thread.
+
+Question 11:
+If there are more than four arguments, those arguments must be fetched from the user-level stack starting at sp+16 (the first four
+arguments are in registers a0-a3).
+
+Question 12:
+The SYSCALL macro in syscalls.S is the definition for each syscall. Its purpose is to load the syscall number into v0 which allows the
+kernel to handle different syscalls with different procedures.
+
+Question 13:
+The MIPS instruction that actually triggers a system call is “syscall” on line 84 of syscalls-mips.S.
+
+Question 14:
+The 32-bit file handle is found in a0, while the 64-bit offset is found in a2/a3 (a1 is unused). The 32-bit whence is stored on the user
+stack at sp+16. The 64-bit offset is returned in registers v0/v1.
+
+Question 15:
+The kernel function to open a file is vfs_open(). The macro to read the file is VOP_READ. The macro to write a file is VOP_WRITE (both
+macros are defined in vnode.h). The data structure used to represent a file is the struct vnode also defined in vnode.h.
+
+Question 16:
+VOP_INCREF and VOP_DECREF are macros that call vnode_incref() and vnode_decref() defined in vnode.c. These functions increment or
+decrement the reference count of a vnode, which is used to track the current number of references to that vnode.
