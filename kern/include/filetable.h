@@ -23,3 +23,5 @@ enum file_status {
     READ_WRITE,
 };
 
+struct fd_table *fd_table_create();
+
