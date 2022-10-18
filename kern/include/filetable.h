@@ -4,7 +4,8 @@
 
 
 struct fd_table {
-    struct file_entry* file_entries[OPEN_MAX]; //fd is index
+    struct file_entry *file_entries[OPEN_MAX]; //fd is index
+    int count;
 };
 
 struct open_file_table {
@@ -14,7 +15,7 @@ struct open_file_table {
 struct file_entry {
     enum file_status status;
     off_t offset;
-    struct vnode* file;
+    struct vnode *file;
 };
 
 enum file_status {
@@ -24,4 +25,6 @@ enum file_status {
 };
 
 struct fd_table *fd_table_create();
+int fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry);
 void open_file_table_init(struct open_file_table *ft);
+
