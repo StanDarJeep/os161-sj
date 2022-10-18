@@ -1,4 +1,5 @@
 #include <filetable.h>
+#include <array.h>
 
 struct fd_table *
 fd_table_create()
@@ -22,6 +23,14 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
 }
 
 void open_file_table_init(struct open_file_table *ft) {
-    ft->entries = kmalloc(sizeof(ft->entries));
+    ft->entries = array_create();
+    array_init(ft->entries);
 }
 
+int open_file_table_add(struct open_file_table *oft, struct file_entry *file_entry) {
+
+    KASSERT(oft != NULL);
+    KASSERT(file_entry != NULL);
+    int err = array_add(oft->entries, file_entry, NULL);
+    return err;
+}
