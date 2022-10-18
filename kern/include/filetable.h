@@ -8,7 +8,7 @@ struct fd_table {
 };
 
 struct open_file_table {
-    struct file_entry* entries;
+    struct file_entry* entries[];
 };
 
 struct file_entry {
@@ -24,4 +24,4 @@ enum file_status {
 };
 
 struct fd_table *fd_table_create();
-
+void open_file_table_init(struct open_file_table *ft);

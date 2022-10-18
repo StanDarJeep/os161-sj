@@ -12,3 +12,7 @@ fd_table_create()
     struct file_entry *file_entries[] = kmalloc(sizeof(*file_entries));
     return fd_table;
 }
+
+void open_file_table_init(struct open_file_table *ft) {
+    ft->entries = kmalloc(sizeof(ft->entries));
+}
