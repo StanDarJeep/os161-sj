@@ -1,13 +1,15 @@
 #include <filetable.h>
 #include <vfs.h>
 #include <current.h>
+#include <proc.h>
+#include <syscall.h>
 
 int
 open(const char *filename, int flags) {
     struct vnode *vn = NULL;
-    int result = vfs_open(filename, flags, NULL, &vn);
+    int result = vfs_open((char *)filename, flags, 0, &vn);
     if (result == 0) {
-        struct file_entry *file_entry = kmalloc(size_of(*file_entry));
+        struct file_entry *file_entry = kmalloc(sizeof(*file_entry));
         file_entry->status = flags;
         file_entry->offset = 0;
         file_entry->file = vn;

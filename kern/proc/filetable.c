@@ -10,7 +10,7 @@ fd_table_create()
         return NULL;
     }
 
-    struct file_entry *file_entries[] = kmalloc(sizeof(*file_entries));
+    fd_table->file_entries = kmalloc(OPEN_MAX * sizeof(struct file_entry));
     fd_table->count = 0;
     return fd_table;
 }

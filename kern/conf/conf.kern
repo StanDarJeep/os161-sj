@@ -330,6 +330,8 @@ file      thread/threadlist.c
 # Process system
 #
 
+file      proc/filetable.c
+
 file      proc/proc.c
 
 #
@@ -372,6 +374,8 @@ file      vfs/devnull.c
 # (You will probably want to add stuff here while doing the basic system
 # calls assignment.)
 #
+
+file      syscall/open.c
 
 file      syscall/loadelf.c
 file      syscall/runprogram.c
