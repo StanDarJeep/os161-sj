@@ -14,16 +14,16 @@ struct open_file_table {
 
 extern struct open_file_table open_file_table;
 
-struct file_entry {
-    enum file_status status;
-    off_t offset;
-    struct vnode *file;
-};
-
 enum file_status {
     READ,
     WRITE,
     READ_WRITE,
+};
+
+struct file_entry {
+    enum file_status status;
+    off_t offset;
+    struct vnode *file;
 };
 
 struct fd_table *fd_table_create();
