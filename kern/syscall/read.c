@@ -17,7 +17,7 @@ On error, return error code
 int
 sys__read(int fd, void *buf, size_t buflen, int *retval) {
     lock_acquire(curproc->file_descriptor_table->fd_table_lock);
-    if (fd < 0 || fd > OPEN_MAX) {
+    if (fd < 3 || fd > OPEN_MAX) {
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         return EBADF;
     }

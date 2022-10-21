@@ -141,7 +141,7 @@ common_prog(int nargs, char **args)
 	 * The new process will be destroyed when the program exits...
 	 * once you write the code for handling that.
 	 */
-
+	while(1){}
 	return 0;
 }
 
@@ -644,7 +644,6 @@ cmd_dispatch(char *cmd)
 			kprintf("Operation took %llu.%09lu seconds\n",
 				(unsigned long long) duration.tv_sec,
 				(unsigned long) duration.tv_nsec);
-
 			return result;
 		}
 	}
