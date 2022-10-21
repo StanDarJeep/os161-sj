@@ -4,7 +4,7 @@
 #include <proc.h>
 #include <syscall.h>
 #include <synch.h>
-#include <errno.h>
+#include <kern/errno.h>
 #include <uio.h>
 /*
 read reads up to buflen bytes from the file specified by fd, at the location in the file specified by the 
@@ -36,7 +36,7 @@ sys__read(int fd, void *buf, size_t buflen, int *retval) {
     struct iovec iovec;
     struct uio uio;
 
-    iovec.iov_base = buf;
+    iovec.iov_ubase = buf;
     iovec.iov_len = buflen;
     uio.uio_iov = &iovec;
     uio.uio_iovcnt = 1;
