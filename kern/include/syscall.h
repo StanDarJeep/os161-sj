@@ -60,6 +60,9 @@ int sys_reboot(int code);
 int sys___time(userptr_t user_seconds, userptr_t user_nanoseconds);
 int sys__read(int fd, void *buf, size_t buflen, int *retval);
 int sys__write(int fd, void *buf, size_t buflen, int *retval);
-int open(const char *filename, int flags, int *retval);
+int sys__open(const char *filename, int flags, int *retval);
+int sys__read(int fd, void *buf, size_t buflen, int *retval);
+int sys__write(int fd, void *buf, size_t buflen, int *retval);
+int sys__close(int fd, int *retval);
 
 #endif /* _SYSCALL_H_ */
