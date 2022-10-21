@@ -38,7 +38,7 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
 int 
 fd_table_remove(struct fd_table *fd_table, int fd) {
     lock_acquire(fd_table->fd_table_lock);
-    if (fd_table->count[fd] != 1) return -1;
+    if (fd_table->count[fd] != 1 || fd >= OPEN_MAX) return -1;
     if (fd_table->file_entries[fd]->ref_count <= 1) file_entry_destroy(fd_table->file_entries[fd]);
     else fd_table->file_entries[fd]->ref_count--;
     fd_table->count[fd] = 0;

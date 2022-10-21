@@ -9,8 +9,7 @@ int
 sys__close(int fd, int *retval)
 {
     vfs_close(curproc->file_descriptor_table->file_entries[fd]->file);
-    int err = fd_table_remove(curproc->file_descriptor_table, fd);
-    if (err == -1) *retval = EBADF;
-    else *retval = 0;
-    return err;
+    *retval = fd_table_remove(curproc->file_descriptor_table, fd);
+    if (*retval == -1) return EBADF;
+    else return 0;
 }
