@@ -34,12 +34,18 @@ struct file_entry {
 };
 
 struct fd_table *fd_table_create(void);
-void *fd_table_destroy(struct fd_table *fd_table);
+void fd_table_destroy(struct fd_table *fd_table);
 int fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry);
 void fd_table_remove(struct fd_table *fd_table, int fd);
 void open_file_table_init(struct open_file_table *ft);
 int open_file_table_add(struct open_file_table *oft, struct file_entry *file_entry);
+int open_file_table_remove(struct open_file_table *oft, struct file_entry *file_entry);
+
+/*
+    return index of file_entry in open_file_table. -1 if it doesn't exist
+*/
+int open_file_table_getIndexOf(struct open_file_table *oft, struct file_entry *file_entry);
 struct file_entry *file_entry_create(enum file_status file_status, off_t offset, struct vnode *vnode);
-void file_entry_destroy(struct file_entry *file_entry);
+int file_entry_destroy(struct file_entry *file_entry);
 
 #endif /* _FILETABLE_H_*/
