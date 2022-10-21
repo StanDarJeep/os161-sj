@@ -41,6 +41,7 @@ fd_table_remove(struct fd_table *fd_table, int fd) {
     if (fd_table->file_entries[fd]->ref_count <= 1) file_entry_destroy(fd_table->file_entries[fd]);
     else fd_table->file_entries[fd]->ref_count--;
     fd_table->count[fd] = 0;
+    lock_release(fd_table->fd_table_lock);
 }
 
 void open_file_table_init(struct open_file_table *ft) {

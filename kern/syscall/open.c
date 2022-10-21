@@ -6,7 +6,7 @@
 #include <kern/errno.h>
 
 int
-open(const char *filename, int flags, int *retval) {
+sys__open(const char *filename, int flags, int *retval) {
     struct vnode *vn = NULL;
     int err = vfs_open((char *)filename, flags, 0, &vn);
     if (err == 0) {
