@@ -35,13 +35,15 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
     return index;
 }
 
-void 
+int 
 fd_table_remove(struct fd_table *fd_table, int fd) {
     lock_acquire(fd_table->fd_table_lock);
+    if (fd_table->count[fd] != 1) return -1;
     if (fd_table->file_entries[fd]->ref_count <= 1) file_entry_destroy(fd_table->file_entries[fd]);
     else fd_table->file_entries[fd]->ref_count--;
     fd_table->count[fd] = 0;
     lock_release(fd_table->fd_table_lock);
+    return 0;
 }
 
 void open_file_table_init(struct open_file_table *ft) {
