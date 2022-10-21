@@ -71,15 +71,54 @@ file_entry_create(enum file_status file_status, off_t offset, struct vnode *vnod
     return file_entry;
 }
 
-void
-file_entry_destroy(struct file_entry *file_entry) {
-    kfree(file_entry);
+int
+open_file_table_remove(struct open_file_table *oft, struct file_entry *file_entry) {
+    int index = open_file_table_getIndexOf(oft, file_entry);
+    if (index != -1) {
+        array_remove(oft->entries, index);
+        return 0;
+    } else {
+        return -1;
+    }
 }
 
-// void 
-// fd_table_destroy(struct fd_table *fd_table) {
-//     for (int i = 0; i < OPEN_MAX; i++) {
-//         if 
-//     }
-// }
+int 
+open_file_table_getIndexOf(struct open_file_table *oft, struct file_entry *file_entry){
+    struct file_entry *f;
+    for (int i = 0; (unsigned)i < array_num(oft->entries); i++) {
+        f = (struct file_entry *) array_get(oft->entries, i);
+        if (f->status == file_entry->status &&
+            f->offset == file_entry->offset &&
+            f->file == file_entry->file &&
+            f->ref_count == file_entry->ref_count &&
+            f->file_entry_lock == file_entry->file_entry_lock)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
 
+int
+file_entry_destroy(struct file_entry *file_entry) {
+    int i = open_file_table_remove(&open_file_table, file_entry);
+    if (i != 0) {
+        return i;
+    }
+    kfree(file_entry);
+    return 0;
+}
+
+void 
+fd_table_destroy(struct fd_table *fd_table) {
+    for (int i = 0; i < OPEN_MAX; i++) {
+        if (fd_table->count[i] >= 1) {
+            if (fd_table->file_entries[i]->ref_count == 1) {
+                file_entry_destroy(fd_table->file_entries[i]);
+            } else {
+                fd_table->file_entries[i]->ref_count -= 1;
+            }
+        }
+    }
+    kfree(fd_table);
+}
