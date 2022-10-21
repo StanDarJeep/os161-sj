@@ -54,10 +54,16 @@ file_entry_destroy(struct file_entry *file_entry) {
     kfree(file_entry);
 }
 
-// void 
-// fd_table_destroy(struct fd_table *fd_table) {
-//     for (int i = 0; i < OPEN_MAX; i++) {
-//         if 
-//     }
-// }
-
+void 
+fd_table_destroy(struct fd_table *fd_table) {
+    for (int i = 0; i < OPEN_MAX; i++) {
+        if (fd_table->count[i] >= 1) {
+            if (fd_table->file_entries[i]->ref_count == 1) {
+                file_entry_destroy(fd_table->file_entries[i]);
+            } else {
+                fd_table->file_entries[i]->ref_count -= 1;
+            }
+        }
+    }
+    kfree(fd_table);
+}
