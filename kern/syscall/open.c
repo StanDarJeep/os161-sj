@@ -18,10 +18,3 @@ open(const char *filename, int flags) {
     }
     return 0; // change this to reflect error codes correctly
 }
-
-int
-read(int fd, void *buf, size_t buflen) {
-    struct file_entry *file_entry = curproc->file_descriptor_table->file_entries[fd];
-    KASSERT(file_entry->status == READ);
-    
-}
