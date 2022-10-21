@@ -12,7 +12,8 @@ fd_table_create()
     }
 
     fd_table->file_entries = kmalloc(OPEN_MAX * sizeof(struct file_entry));
-    fd_table->count = 0;
+    fd_table->count = kmalloc(OPEN_MAX * sizeof(int));
+    for (int i = 0; i < OPEN_MAX; i++) fd_table->count[i] = 0;
     fd_table->fd_table_lock = lock_create("fd_table_lock");
     return fd_table;
 }
@@ -20,8 +21,23 @@ fd_table_create()
 int 
 fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
 {
-    fd_table->file_entries[fd_table->count] = file_entry;
-    return fd_table->count++;
+    lock_acquire(fd_table->fd_table_lock);
+    int index = -1;
+    for (int i = 0; i < OPEN_MAX; i++) {
+        if (fd_table->count[i] == 0) {
+            index = i;
+        }
+    }
+    if (index == -1) return -1;
+    fd_table->file_entries[index] = file_entry;
+    fd_table->count[index] = 1;
+    lock_release(fd_table->fd_table_lock);
+    return index;
+}
+
+int 
+fd_table_remove(struct fd_table *fd_table, int fd) {
+
 }
 
 void open_file_table_init(struct open_file_table *ft) {

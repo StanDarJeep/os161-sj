@@ -7,7 +7,7 @@
 #include <array.h>
 
 struct fd_table {
-    int count;
+    int *count;
     struct file_entry **file_entries; // fd is index
     struct lock *fd_table_lock;
 };
