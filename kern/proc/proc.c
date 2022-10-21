@@ -48,6 +48,8 @@
 #include <current.h>
 #include <addrspace.h>
 #include <vnode.h>
+#include <vfs.h>
+#include <kern/fcntl.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -81,6 +83,7 @@ proc_create(const char *name)
 
 	/* VFS fields */
 	proc->p_cwd = NULL;
+	proc->file_descriptor_table = fd_table_create();
 
 	return proc;
 }
@@ -205,6 +208,21 @@ proc_create_runprogram(const char *name)
 	newproc->p_addrspace = NULL;
 
 	/* VFS fields */
+
+    struct vnode *vn_stdin;
+	vfs_open((char *)"con:", O_RDONLY, 0, &vn_stdin);
+	struct file_entry *file_entry_stdin = file_entry_create(O_RDONLY, 0, vn_stdin);
+	fd_table_add(newproc->file_descriptor_table, file_entry_stdin);
+
+	struct vnode *vn_stdout;
+	vfs_open((char *)"con:", O_RDWR, 0, &vn_stdout);
+    struct file_entry *file_entry_stdout = file_entry_create(O_RDWR, 0, vn_stdout);
+	fd_table_add(newproc->file_descriptor_table, file_entry_stdout);
+
+	struct vnode *vn_stderr;
+	vfs_open((char *)"con:", O_RDWR, 0, &vn_stderr);
+	struct file_entry *file_entry_stderr = file_entry_create(O_RDWR, 0, vn_stderr);
+	fd_table_add(newproc->file_descriptor_table, file_entry_stderr);
 
 	/*
 	 * Lock the current process to copy its current directory.

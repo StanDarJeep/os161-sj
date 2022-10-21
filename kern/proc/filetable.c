@@ -37,3 +37,13 @@ int open_file_table_add(struct open_file_table *oft, struct file_entry *file_ent
     int err = array_add(oft->entries, file_entry, NULL);
     return err;
 }
+
+struct file_entry * 
+file_entry_create(enum file_status file_status, off_t offset, struct vnode *vnode) {
+    struct file_entry *file_entry = kmalloc(sizeof(*file_entry));
+    file_entry->status = file_status;
+    file_entry->offset = offset;
+    file_entry->file = vnode;
+    open_file_table_add(&open_file_table, file_entry);
+    return file_entry;
+}
