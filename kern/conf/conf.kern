@@ -376,6 +376,8 @@ file      vfs/devnull.c
 #
 
 file      syscall/open.c
+file      syscall/read.c
+file      syscall/write.c
 
 file      syscall/loadelf.c
 file      syscall/runprogram.c

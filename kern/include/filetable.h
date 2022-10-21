@@ -9,10 +9,12 @@
 struct fd_table {
     int count;
     struct file_entry **file_entries; // fd is index
+    struct lock *fd_table_lock;
 };
 
 struct open_file_table {
     struct array *entries;
+    struct lock *open_file_table_lock;
 };
 
 extern struct open_file_table open_file_table;
@@ -27,6 +29,7 @@ struct file_entry {
     enum file_status status;
     off_t offset;
     struct vnode *file;
+    struct lock *file_entry_lock;
 };
 
 struct fd_table *fd_table_create(void);

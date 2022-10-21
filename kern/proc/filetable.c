@@ -1,5 +1,6 @@
 #include <filetable.h>
 #include <array.h>
+#include <synch.h>
 
 struct fd_table *
 fd_table_create()
@@ -12,6 +13,7 @@ fd_table_create()
 
     fd_table->file_entries = kmalloc(OPEN_MAX * sizeof(struct file_entry));
     fd_table->count = 0;
+    fd_table->fd_table_lock = lock_create("fd_table_lock");
     return fd_table;
 }
 
@@ -25,6 +27,7 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
 void open_file_table_init(struct open_file_table *ft) {
     ft->entries = array_create();
     array_init(ft->entries);
+    ft->open_file_table_lock = lock_create("open_file_table_lock");
 }
 
 int open_file_table_add(struct open_file_table *oft, struct file_entry *file_entry) {
