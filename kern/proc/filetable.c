@@ -67,6 +67,7 @@ file_entry_create(enum file_status file_status, off_t offset, struct vnode *vnod
     file_entry->offset = offset;
     file_entry->file = vnode;
     file_entry->ref_count = 1;
+    file_entry->file_entry_lock = lock_create("file_entry_lock");
     open_file_table_add(&open_file_table, file_entry);
     return file_entry;
 }
@@ -105,6 +106,7 @@ file_entry_destroy(struct file_entry *file_entry) {
     if (i != 0) {
         return i;
     }
+    lock_destroy(file_entry->file_entry_lock);
     kfree(file_entry);
     return 0;
 }
@@ -120,5 +122,7 @@ fd_table_destroy(struct fd_table *fd_table) {
             }
         }
     }
+    kfree(fd_table->count);
+    lock_destroy(fd_table->fd_table_lock);
     kfree(fd_table);
 }

@@ -83,7 +83,6 @@ proc_create(const char *name)
 
 	/* VFS fields */
 	proc->p_cwd = NULL;
-	proc->file_descriptor_table = fd_table_create();
 
 	return proc;
 }
@@ -202,6 +201,8 @@ proc_create_runprogram(const char *name)
 	if (newproc == NULL) {
 		return NULL;
 	}
+
+	newproc->file_descriptor_table = fd_table_create();
 
 	/* VM fields */
 

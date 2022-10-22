@@ -33,7 +33,6 @@ simple_test()
 	int fd, rv;
 
 	file = "testfile";
-
 	fd = open(file, O_WRONLY|O_CREAT|O_TRUNC, 0664);
 	if (fd<0) {
 		err(1, "%s: open for write", file);
@@ -359,20 +358,19 @@ dir_test()
 int
 main()
 {
-	test_openfile_limits();
-	printf("Passed Part 1 of fsyscalltest\n");
-
+	// test_openfile_limits();
+	// printf("Passed Part 1 of fsyscalltest\n");
 	simple_test();
 	printf("Passed Part 2 of fsyscalltest\n");
-	
-	simultaneous_write_test();
-	printf("Passed Part 3 of fsyscalltest\n");
-	
-	test_dup2();
-	printf("Passed Part 4 of fsyscalltest\n");
 
-	dir_test();
-	printf("Passed Part 5 of fsyscalltest\n");
+	// simultaneous_write_test();
+	// printf("Passed Part 3 of fsyscalltest\n");
+	
+	// test_dup2();
+	// printf("Passed Part 4 of fsyscalltest\n");
+
+	// dir_test();
+	// printf("Passed Part 5 of fsyscalltest\n");
 	
 	printf("All done!\n");
 	
