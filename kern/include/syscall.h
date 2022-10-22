@@ -63,7 +63,8 @@ int sys__write(int fd, void *buf, size_t buflen, int *retval);
 int sys__open(const char *filename, int flags, int *retval);
 int sys__read(int fd, void *buf, size_t buflen, int *retval);
 int sys__write(int fd, void *buf, size_t buflen, int *retval);
-int sys__close(int fd, int *retval);
+int sys__close(int fd);
 int sys__chdir(const char *pathname);
+int sys__dup2(int oldfd, int newfd, int *retval);
 
 #endif /* _SYSCALL_H_ */
