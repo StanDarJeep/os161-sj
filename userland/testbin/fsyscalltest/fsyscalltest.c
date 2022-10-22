@@ -358,19 +358,22 @@ dir_test()
 int
 main()
 {
-	// test_openfile_limits();
-	// printf("Passed Part 1 of fsyscalltest\n");
+	printf("HERE1\n");
+	test_openfile_limits();
+	printf("Passed Part 1 of fsyscalltest\n");
+
+	printf("HERE\n");
 	simple_test();
 	printf("Passed Part 2 of fsyscalltest\n");
 
-	// simultaneous_write_test();
-	// printf("Passed Part 3 of fsyscalltest\n");
+	simultaneous_write_test();
+	printf("Passed Part 3 of fsyscalltest\n");
 	
-	// test_dup2();
-	// printf("Passed Part 4 of fsyscalltest\n");
+	test_dup2();
+	printf("Passed Part 4 of fsyscalltest\n");
 
-	// dir_test();
-	// printf("Passed Part 5 of fsyscalltest\n");
+	dir_test();
+	printf("Passed Part 5 of fsyscalltest\n");
 	
 	printf("All done!\n");
 	
