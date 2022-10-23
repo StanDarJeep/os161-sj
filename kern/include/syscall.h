@@ -66,5 +66,6 @@ int sys__write(int fd, void *buf, size_t buflen, int *retval);
 int sys__close(int fd);
 int sys__chdir(const char *pathname);
 int sys__dup2(int oldfd, int newfd, int *retval);
+int sys__getcwd(char *buf, size_t buflen, int *retval);
 
 #endif /* _SYSCALL_H_ */
