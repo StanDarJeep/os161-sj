@@ -6,6 +6,7 @@
 #include <kern/errno.h>
 #include <limits.h>
 #include <copyinout.h>
+#include <synch.h>
 
 int
 sys__open(const char *filename, int flags, int *retval) {
@@ -25,7 +26,9 @@ sys__open(const char *filename, int flags, int *retval) {
     kfree(length);
     if (err == 0) {
         struct file_entry *file_entry = file_entry_create(flags, 0, vn);
+        lock_acquire(curproc->file_descriptor_table->fd_table_lock);
         *retval = fd_table_add(curproc->file_descriptor_table, file_entry);
+        lock_release(curproc->file_descriptor_table->fd_table_lock);
         if (*retval == -1) {
             // fd_table_add will return -1 in the event that the fd table is full
             kfree(vn);
