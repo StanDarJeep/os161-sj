@@ -381,6 +381,8 @@ file      syscall/write.c
 file      syscall/close.c
 file      syscall/chdir.c
 file      syscall/lseek.c
+file      syscall/dup2.c
+file      syscall/__getcwd.c
 
 file      syscall/loadelf.c
 file      syscall/runprogram.c

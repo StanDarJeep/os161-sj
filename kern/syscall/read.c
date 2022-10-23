@@ -57,6 +57,5 @@ sys__read(int fd, void *buf, size_t buflen, int *retval) {
     lock_release(file_entry->file_entry_lock);
     lock_release(curproc->file_descriptor_table->fd_table_lock);
     *retval = (int)(buflen - uio.uio_resid);
-
     return 0;
 }
