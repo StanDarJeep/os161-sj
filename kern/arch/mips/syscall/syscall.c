@@ -111,19 +111,24 @@ syscall(struct trapframe *tf)
 
 	    /* Add stuff here */
 		case SYS_open:
+		kprintf("open\n");
 		err = sys__open((const char *)tf->tf_a0,
 				 (int)tf->tf_a1, &retval);
 		break;
 
 		case SYS_read:
+		kprintf("read\n");
 		err = sys__read((int)tf->tf_a0, (void *)tf->tf_a1,(size_t)tf->tf_a2, &retval);
 		break;
 
 		case SYS_write:
+		kprintf("write\n");
+
 		err = sys__write((int)tf->tf_a0, (void *)tf->tf_a1,(size_t)tf->tf_a2, &retval);
 		break;
 
 		case SYS_close:
+		kprintf("close\n");
 		err = sys__close((int)tf->tf_a0);
 		break;
 
@@ -131,9 +136,9 @@ syscall(struct trapframe *tf)
 		err = sys__dup2((int)tf->tf_a0, (int)tf->tf_a1, &retval);
 		break;
 
-		case SYS_chdir:
-		err = sys__chdir((const char*)tf->tf_a0);
-		break;
+		// case SYS_chdir:
+		// err = sys__chdir((const char*)tf->tf_a0);
+		// break;
 
 		case SYS___getcwd:
 		err = sys__getcwd((char *)tf->tf_a0, (size_t)tf->tf_a1, &retval);

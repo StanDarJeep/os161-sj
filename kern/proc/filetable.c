@@ -1,6 +1,7 @@
 #include <filetable.h>
 #include <array.h>
 #include <synch.h>
+#include <vfs.h>
 
 struct fd_table *
 fd_table_create()
@@ -26,9 +27,13 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
     for (int i = 0; i < OPEN_MAX; i++) {
         if (fd_table->count[i] == 0) {
             index = i;
+            break;
         }
     }
-    if (index == -1) return -1;
+    if (index == -1){
+        lock_release(fd_table->fd_table_lock);
+        return -1;
+    } 
     fd_table->file_entries[index] = file_entry;
     fd_table->count[index] = 1;
     lock_release(fd_table->fd_table_lock);
@@ -38,9 +43,16 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
 int 
 fd_table_remove(struct fd_table *fd_table, int fd) {
     lock_acquire(fd_table->fd_table_lock);
-    if (fd_table->count[fd] != 1 || fd >= OPEN_MAX) return -1;
-    if (fd_table->file_entries[fd]->ref_count <= 1) file_entry_destroy(fd_table->file_entries[fd]);
-    else fd_table->file_entries[fd]->ref_count--;
+    if (fd_table->count[fd] != 1 || fd >= OPEN_MAX || fd < 0) {
+        lock_release(fd_table->fd_table_lock);
+        return -1;
+    } 
+    KASSERT(fd_table->file_entries[fd]->ref_count >= 1);
+    fd_table->file_entries[fd]->ref_count -= 1;
+    if (fd_table->file_entries[fd]->ref_count == 0) {
+        vfs_close(fd_table->file_entries[fd]->file);
+        file_entry_destroy(fd_table->file_entries[fd]);
+    }
     fd_table->count[fd] = 0;
     lock_release(fd_table->fd_table_lock);
     return 0;

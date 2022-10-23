@@ -8,7 +8,6 @@
 int
 sys__close(int fd)
 {
-    vfs_close(curproc->file_descriptor_table->file_entries[fd]->file);
     int i = fd_table_remove(curproc->file_descriptor_table, fd);
     if (i == -1) return EBADF;
     else return 0;

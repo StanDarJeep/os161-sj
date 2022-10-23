@@ -184,7 +184,6 @@ test_openfile_limits()
 		if( (fd == 0) || (fd == 1) || (fd == 2))
 			err(1, "open for %s returned a reserved file descriptor",
 			    file);
-
 		/* We do not assume that the underlying system will return
 		 * file descriptors as consecutive numbers, so we just remember
 		 * all that were returned, so we can close them. 

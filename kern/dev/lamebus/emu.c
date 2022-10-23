@@ -1159,7 +1159,6 @@ emufs_loadvnode(struct emufs_fs *ef, uint32_t handle, int isdir,
 		ev = v->vn_data;
 		if (ev->ev_handle == handle) {
 			/* Found */
-
 			VOP_INCREF(&ev->ev_v);
 
 			lock_release(ef->ef_emu->e_lock);

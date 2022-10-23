@@ -72,9 +72,7 @@ vfs_open(char *path, int openflags, mode_t mode, struct vnode **ret)
 		if (result) {
 			return result;
 		}
-
 		result = VOP_CREAT(dir, name, excl, mode, &vn);
-
 		VOP_DECREF(dir);
 	}
 	else {
