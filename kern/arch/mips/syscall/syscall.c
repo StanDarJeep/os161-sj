@@ -35,6 +35,7 @@
 #include <thread.h>
 #include <current.h>
 #include <syscall.h>
+#include <endian.h>
 
 
 /*
@@ -98,6 +99,7 @@ syscall(struct trapframe *tf)
 	 */
 
 	retval = 0;
+	uint64_t offset = -1; // change this
 
 	switch (callno) {
 	    case SYS_reboot:
@@ -123,12 +125,17 @@ syscall(struct trapframe *tf)
 		err = sys__write((int)tf->tf_a0, (void *)tf->tf_a1,(size_t)tf->tf_a2, &retval);
 		break;
 
+		case SYS_lseek:
+		join32to64((uint32_t)tf->tf_a2, (uint32_t)tf->tf_a3, &offset);
+		err = sys__lseek((int)tf->tf_a0, (off_t)offset, (int)tf->tf_sp+16, &retval);
+		break;
+
 		case SYS_close:
 		err = sys__close((int)tf->tf_a0, &retval);
 		break;
 
 		case SYS_chdir:
-		err = sys__chdir((const char*)tf->tf_a0);
+		err = sys__chdir((const char*)tf->tf_a0, &retval);
 		break;
 
 	    default:
