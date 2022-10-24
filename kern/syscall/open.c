@@ -39,7 +39,6 @@ sys__open(const char *filename, int flags, int *retval) {
     kfree(path);
     kfree(length);
     if (err) {
-        kfree(vn);
         *retval = -1;
         return err;
     }

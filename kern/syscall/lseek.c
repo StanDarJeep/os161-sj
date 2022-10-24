@@ -13,8 +13,9 @@
 int 
 sys__lseek(int fd, off_t pos, int whence, int64_t *retval)
 {
+    kprintf("fd is: %d\n", fd);
     lock_acquire(curproc->file_descriptor_table->fd_table_lock);
-    if (curproc->file_descriptor_table->count[fd] != 1 || fd >= OPEN_MAX || fd < 0) {
+    if (fd >= OPEN_MAX || fd < 0 || curproc->file_descriptor_table->count[fd] != 1 ) {
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         *retval = -1;
         return EBADF;

@@ -28,8 +28,7 @@ sys__read(int fd, void *buf, size_t buflen, int *retval) {
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         return EBADF;
     }
-    if (!((file_entry->status & READ) == READ) && !((file_entry->status & READ_WRITE) == READ_WRITE)) {
-        lock_release(open_file_table.open_file_table_lock);
+    if (file_entry->status & WRITE) {
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         return EBADF;
     }
