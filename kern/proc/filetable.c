@@ -104,7 +104,10 @@ open_file_table_remove(struct open_file_table *oft, struct file_entry *file_entr
     }
 }
 
-// REQUIRES THE LOCK BEFOREHAND
+/*
+    Helper function to return index of file_entry in open_file_table. Returns -1 if it doesn't exist
+    THIS FUNCTION REQUIRES THE OPEN FILE TABLE LOCK BEFOREHAND
+*/
 int 
 open_file_table_getIndexOf(struct open_file_table *oft, struct file_entry *file_entry){
     struct file_entry *f;

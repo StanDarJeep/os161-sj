@@ -203,7 +203,7 @@ proc_create_runprogram(const char *name)
 		return NULL;
 	}
 
-	newproc->file_descriptor_table = fd_table_create();
+	newproc->file_descriptor_table = fd_table_create(); // initialize the process' file descriptor table
 
 	/* VM fields */
 
@@ -222,9 +222,7 @@ proc_create_runprogram(const char *name)
 		return NULL;
 	}
 	struct file_entry *file_entry_stdin = file_entry_create(O_RDONLY, 0, vn_stdin);
-	// lock_acquire(curproc->file_descriptor_table->fd_table_lock);
 	fd_table_add(newproc->file_descriptor_table, file_entry_stdin);
-	// lock_release(curproc->file_descriptor_table->fd_table_lock);
 
 	struct vnode *vn_stdout;
 	con = kstrdup("con:");
@@ -246,9 +244,7 @@ proc_create_runprogram(const char *name)
 		return NULL;
 	}
 	struct file_entry *file_entry_stderr = file_entry_create(O_RDWR, 0, vn_stderr);
-	// lock_acquire(curproc->file_descriptor_table->fd_table_lock);
 	fd_table_add(newproc->file_descriptor_table, file_entry_stderr);
-	// lock_release(curproc->file_descriptor_table->fd_table_lock);
 
 	/*
 	 * Lock the current process to copy its current directory.
