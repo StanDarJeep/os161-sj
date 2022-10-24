@@ -9,9 +9,6 @@
 int
 sys__close(int fd)
 {
-    lock_acquire(curproc->file_descriptor_table->fd_table_lock);
-    int i = fd_table_remove(curproc->file_descriptor_table, fd);
-    lock_release(curproc->file_descriptor_table->fd_table_lock);
-    if (i == -1) return EBADF;
+    if (fd_table_remove(curproc->file_descriptor_table, fd) == -1) return EBADF;
     else return 0;
 }

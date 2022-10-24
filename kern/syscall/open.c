@@ -44,12 +44,9 @@ sys__open(const char *filename, int flags, int *retval) {
         return err;
     }
     struct file_entry *file_entry = file_entry_create(flags, 0, vn);
-    // lock_acquire(curproc->file_descriptor_table->fd_table_lock);
     *retval = fd_table_add(curproc->file_descriptor_table, file_entry);
-    // lock_release(curproc->file_descriptor_table->fd_table_lock);
     if (*retval == -1) {
         // fd_table_add will return -1 in the event that the fd table is full
-        kprintf("table full\n");
         file_entry_destroy(file_entry);
         kfree(vn);
         return EMFILE;

@@ -6,12 +6,18 @@
 #include <vnode.h>
 #include <array.h>
 
+/*
+This is the representation of our file descriptor table, which is process specific
+*/
 struct fd_table {
     int *count;
     struct file_entry **file_entries; // fd is index
     struct lock *fd_table_lock;
 };
 
+/*
+This is the representation of our open file table, which is initialized in the global context in kern/main.c
+*/
 struct open_file_table {
     struct array *entries;
     struct lock *open_file_table_lock;
@@ -30,7 +36,6 @@ struct file_entry {
     off_t offset;
     struct vnode *file;
     int ref_count;
-    struct lock *file_entry_lock;
 };
 
 struct fd_table *fd_table_create(void);

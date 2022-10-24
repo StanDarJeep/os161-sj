@@ -19,7 +19,6 @@ fd_table_create()
     return fd_table;
 }
 
-// REQUIRES THE LOCK BEFOREHAND
 // returns the fd
 int 
 fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
@@ -42,14 +41,14 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
     return index;
 }
 
-// REQUIRES THE LOCK BEFOREHAND
 // returns -1 on error (EBADF)
 int 
 fd_table_remove(struct fd_table *fd_table, int fd) {
+    lock_acquire(fd_table->fd_table_lock);
     if (fd_table->count[fd] != 1 || fd >= OPEN_MAX || fd < 0) {
         lock_release(fd_table->fd_table_lock);
         return -1;
-    } 
+    }
     KASSERT(fd_table->file_entries[fd]->ref_count >= 1);
     fd_table->file_entries[fd]->ref_count -= 1;
     if (fd_table->file_entries[fd]->ref_count == 0) {
@@ -57,17 +56,20 @@ fd_table_remove(struct fd_table *fd_table, int fd) {
         file_entry_destroy(fd_table->file_entries[fd]);
     }
     fd_table->count[fd] = 0;
+    lock_release(fd_table->fd_table_lock);
     return 0;
 }
 
 // consider a big lock solution for the entire open file table
-void open_file_table_init(struct open_file_table *ft) {
+void 
+open_file_table_init(struct open_file_table *ft) {
     ft->entries = array_create();
     array_init(ft->entries);
     ft->open_file_table_lock = lock_create("open_file_table_lock");
 }
 
-int open_file_table_add(struct open_file_table *oft, struct file_entry *file_entry) {
+int 
+open_file_table_add(struct open_file_table *oft, struct file_entry *file_entry) {
 
     KASSERT(oft != NULL);
     KASSERT(file_entry != NULL);
@@ -84,7 +86,6 @@ file_entry_create(enum file_status file_status, off_t offset, struct vnode *vnod
     file_entry->offset = offset;
     file_entry->file = vnode;
     file_entry->ref_count = 1;
-    file_entry->file_entry_lock = lock_create("file_entry_lock");
     open_file_table_add(&open_file_table, file_entry);
     return file_entry;
 }
@@ -112,8 +113,7 @@ open_file_table_getIndexOf(struct open_file_table *oft, struct file_entry *file_
         if (f->status == file_entry->status &&
             f->offset == file_entry->offset &&
             f->file == file_entry->file &&
-            f->ref_count == file_entry->ref_count &&
-            f->file_entry_lock == file_entry->file_entry_lock)
+            f->ref_count == file_entry->ref_count)
         {
             return i;
         }
@@ -127,12 +127,10 @@ file_entry_destroy(struct file_entry *file_entry) {
     if (i != 0) {
         return i;
     }
-    lock_destroy(file_entry->file_entry_lock);
     kfree(file_entry);
     return 0;
 }
 
-// not used yet, but when we use it we will need locks
 void 
 fd_table_destroy(struct fd_table *fd_table) {
     for (int i = 0; i < OPEN_MAX; i++) {

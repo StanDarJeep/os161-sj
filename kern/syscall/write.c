@@ -22,14 +22,15 @@ sys__write(int fd, void *buf, size_t buflen, int *retval) {
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         return EBADF;
     }
+    lock_acquire(open_file_table.open_file_table_lock);
     struct file_entry *file_entry = curproc->file_descriptor_table->file_entries[fd];
     if (file_entry == NULL) {
+        lock_release(open_file_table.open_file_table_lock);
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         return EBADF;
     }
-    lock_acquire(file_entry->file_entry_lock);
     if (!((file_entry->status & WRITE) == WRITE) && !((file_entry->status & READ_WRITE) == READ_WRITE)) {
-        lock_release(file_entry->file_entry_lock);
+        lock_release(open_file_table.open_file_table_lock);
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         return EBADF;
     }
@@ -48,13 +49,13 @@ sys__write(int fd, void *buf, size_t buflen, int *retval) {
     uio.uio_space = curproc->p_addrspace;
     int err = VOP_WRITE(file_entry->file, &uio);
     if (err) {
-        lock_release(file_entry->file_entry_lock);
+        lock_release(open_file_table.open_file_table_lock);
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         return err;
     }
 
     file_entry->offset += (off_t)(buflen - uio.uio_resid);
-    lock_release(file_entry->file_entry_lock);
+    lock_release(open_file_table.open_file_table_lock);
     lock_release(curproc->file_descriptor_table->fd_table_lock);
     *retval = (int)(buflen - uio.uio_resid);
 
