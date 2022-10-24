@@ -357,14 +357,14 @@ int
 main()
 {
 	(void) test_openfile_limits;
-	//test_openfile_limits();
-	//printf("Passed Part 1 of fsyscalltest\n");
-	// (void) simple_test;
-	simple_test();
-	printf("Passed Part 2 of fsyscalltest\n");
-	(void) simultaneous_write_test;
-	// simultaneous_write_test();
-	// printf("Passed Part 3 of fsyscalltest\n");
+	// test_openfile_limits();
+	// printf("Passed Part 1 of fsyscalltest\n");
+	(void) simple_test;
+	// simple_test();
+	// printf("Passed Part 2 of fsyscalltest\n");
+	// (void) simultaneous_write_test;
+	simultaneous_write_test();
+	printf("Passed Part 3 of fsyscalltest\n");
 	(void) test_dup2;
 	// test_dup2();
 	// printf("Passed Part 4 of fsyscalltest\n");
