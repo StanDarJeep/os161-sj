@@ -144,7 +144,7 @@ syscall(struct trapframe *tf)
 		break;
 
 		case SYS_dup2:
-		kprintf("dup2\n");
+		// kprintf("dup2\n");
 		err = sys__dup2((int)tf->tf_a0, (int)tf->tf_a1, &retval);
 		break;
 

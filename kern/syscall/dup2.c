@@ -32,6 +32,7 @@ int sys__dup2(int oldfd, int newfd, int *retval) {
         return EBADF;
     }
     
+    //if newfd is being used, close it
     if (curproc->file_descriptor_table->count[newfd] == 1) {
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         sys__close(newfd);
@@ -45,6 +46,7 @@ int sys__dup2(int oldfd, int newfd, int *retval) {
         }
     }
     if (index == -1) {
+        //fd table is full
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         return EMFILE;
     }
@@ -52,6 +54,7 @@ int sys__dup2(int oldfd, int newfd, int *retval) {
     curproc->file_descriptor_table->file_entries[newfd] = curproc->file_descriptor_table->file_entries[oldfd];
     lock_acquire(curproc->file_descriptor_table->file_entries[newfd]->file_entry_lock);
     curproc->file_descriptor_table->file_entries[newfd]->ref_count += 1;
+    curproc->file_descriptor_table->count[newfd] = 1;
     lock_release(curproc->file_descriptor_table->file_entries[newfd]->file_entry_lock);
     *retval = newfd;
     lock_release(curproc->file_descriptor_table->fd_table_lock);
