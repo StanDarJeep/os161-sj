@@ -130,6 +130,7 @@ syscall(struct trapframe *tf)
 		break;
 
 		case SYS_lseek:
+		kprintf("lseek\n");
 		join32to64((uint32_t)tf->tf_a2, (uint32_t)tf->tf_a3, &offset);
 		err = sys__lseek((int)tf->tf_a0, (off_t)offset, (int)tf->tf_sp+16, &retval);
 		break;
@@ -140,14 +141,17 @@ syscall(struct trapframe *tf)
 		break;
 
 		case SYS_dup2:
+		kprintf("dup2\n");
 		err = sys__dup2((int)tf->tf_a0, (int)tf->tf_a1, &retval);
 		break;
 
-		// case SYS_chdir:
-		// err = sys__chdir((const char*)tf->tf_a0);
-		// break;
+		case SYS_chdir:
+		kprintf("chdir\n");
+		err = sys__chdir((const char*)tf->tf_a0);
+		break;
 
 		case SYS___getcwd:
+		kprintf("getcwd\n");
 		err = sys__getcwd((char *)tf->tf_a0, (size_t)tf->tf_a1, &retval);
 		break;
 

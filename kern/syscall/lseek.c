@@ -50,8 +50,8 @@ sys__lseek(int fd, off_t pos, int whence, int *retval)
         return 0;
     }
     else if (whence == SEEK_END) {
-        struct stat *stat;
-        int result = VOP_STAT(curproc->file_descriptor_table->file_entries[fd]->file, stat);
+        struct stat *stat = NULL;
+        VOP_STAT(curproc->file_descriptor_table->file_entries[fd]->file, stat);
         if (stat->st_size - 1 + pos < 0) {
             lock_release(curproc->file_descriptor_table->file_entries[fd]->file_entry_lock);
             kfree(stat);
