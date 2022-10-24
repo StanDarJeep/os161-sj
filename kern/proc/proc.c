@@ -210,23 +210,41 @@ proc_create_runprogram(const char *name)
 	newproc->p_addrspace = NULL;
 
 	/* VFS fields */
+	char *con = NULL;
+	int result;
 
     struct vnode *vn_stdin;
-	vfs_open((char *)"con:", O_RDONLY, 0, &vn_stdin);
+	con = kstrdup("con:");
+	result = vfs_open(con, O_RDONLY, 0, &vn_stdin);
+	if (result)
+	{
+		fd_table_destroy(newproc->file_descriptor_table);
+		return NULL;
+	}
 	struct file_entry *file_entry_stdin = file_entry_create(O_RDONLY, 0, vn_stdin);
 	// lock_acquire(curproc->file_descriptor_table->fd_table_lock);
 	fd_table_add(newproc->file_descriptor_table, file_entry_stdin);
 	// lock_release(curproc->file_descriptor_table->fd_table_lock);
 
 	struct vnode *vn_stdout;
-	vfs_open((char *)"con:", O_RDWR, 0, &vn_stdout);
-    struct file_entry *file_entry_stdout = file_entry_create(O_RDWR, 0, vn_stdout);
-	// lock_acquire(curproc->file_descriptor_table->fd_table_lock);
+	con = kstrdup("con:");
+	result = vfs_open(con, O_RDWR, 0, &vn_stdout);
+	if (result)
+	{
+		fd_table_destroy(newproc->file_descriptor_table);
+		return NULL;
+	}
+	struct file_entry *file_entry_stdout = file_entry_create(O_RDWR, 0, vn_stdout);
 	fd_table_add(newproc->file_descriptor_table, file_entry_stdout);
-	// lock_release(curproc->file_descriptor_table->fd_table_lock);
 
 	struct vnode *vn_stderr;
-	vfs_open((char *)"con:", O_RDWR, 0, &vn_stderr);
+	con = kstrdup("con:");
+	result = vfs_open(con, O_RDWR, 0, &vn_stderr);
+	if (result)
+	{
+		fd_table_destroy(newproc->file_descriptor_table);
+		return NULL;
+	}
 	struct file_entry *file_entry_stderr = file_entry_create(O_RDWR, 0, vn_stderr);
 	// lock_acquire(curproc->file_descriptor_table->fd_table_lock);
 	fd_table_add(newproc->file_descriptor_table, file_entry_stderr);
