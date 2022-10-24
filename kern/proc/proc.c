@@ -50,6 +50,7 @@
 #include <vnode.h>
 #include <vfs.h>
 #include <kern/fcntl.h>
+#include <synch.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -213,17 +214,23 @@ proc_create_runprogram(const char *name)
     struct vnode *vn_stdin;
 	vfs_open((char *)"con:", O_RDONLY, 0, &vn_stdin);
 	struct file_entry *file_entry_stdin = file_entry_create(O_RDONLY, 0, vn_stdin);
+	// lock_acquire(curproc->file_descriptor_table->fd_table_lock);
 	fd_table_add(newproc->file_descriptor_table, file_entry_stdin);
+	// lock_release(curproc->file_descriptor_table->fd_table_lock);
 
 	struct vnode *vn_stdout;
 	vfs_open((char *)"con:", O_RDWR, 0, &vn_stdout);
     struct file_entry *file_entry_stdout = file_entry_create(O_RDWR, 0, vn_stdout);
+	// lock_acquire(curproc->file_descriptor_table->fd_table_lock);
 	fd_table_add(newproc->file_descriptor_table, file_entry_stdout);
+	// lock_release(curproc->file_descriptor_table->fd_table_lock);
 
 	struct vnode *vn_stderr;
 	vfs_open((char *)"con:", O_RDWR, 0, &vn_stderr);
 	struct file_entry *file_entry_stderr = file_entry_create(O_RDWR, 0, vn_stderr);
+	// lock_acquire(curproc->file_descriptor_table->fd_table_lock);
 	fd_table_add(newproc->file_descriptor_table, file_entry_stderr);
+	// lock_release(curproc->file_descriptor_table->fd_table_lock);
 
 	/*
 	 * Lock the current process to copy its current directory.

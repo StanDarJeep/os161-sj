@@ -24,6 +24,7 @@ fd_table_create()
 int 
 fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
 {
+    lock_acquire(fd_table->fd_table_lock);
     int index = -1;
     for (int i = 0; i < OPEN_MAX; i++) {
         if (fd_table->count[i] == 0) {
@@ -37,6 +38,7 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
     } 
     fd_table->file_entries[index] = file_entry;
     fd_table->count[index] = 1;
+    lock_release(fd_table->fd_table_lock);
     return index;
 }
 

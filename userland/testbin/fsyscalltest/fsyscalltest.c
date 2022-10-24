@@ -357,11 +357,10 @@ dir_test()
 int
 main()
 {
-	printf("HERE1\n");
-	test_openfile_limits();
-	printf("Passed Part 1 of fsyscalltest\n");
+	(void) test_openfile_limits;
+	// test_openfile_limits();
+	// printf("Passed Part 1 of fsyscalltest\n");
 	// (void) simple_test;
-	printf("HERE\n");
 	simple_test();
 	printf("Passed Part 2 of fsyscalltest\n");
 	(void) simultaneous_write_test;

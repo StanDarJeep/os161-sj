@@ -46,7 +46,6 @@ sys__write(int fd, void *buf, size_t buflen, int *retval) {
     uio.uio_rw = UIO_WRITE;
     uio.uio_segflg = UIO_USERSPACE;
     uio.uio_space = curproc->p_addrspace;
-
     int err = VOP_WRITE(file_entry->file, &uio);
     if (err) {
         lock_release(file_entry->file_entry_lock);

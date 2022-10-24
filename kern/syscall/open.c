@@ -20,6 +20,20 @@ sys__open(const char *filename, int flags, int *retval) {
         return err;
     }
     
+    lock_acquire(curproc->file_descriptor_table->fd_table_lock);
+    int index = -1;
+    for (int i = 0; i < OPEN_MAX; i++) {
+        if (curproc->file_descriptor_table->count[i] == 0) {
+            index = i;
+            break;
+        }
+    }
+    if (index == -1){
+        lock_release(curproc->file_descriptor_table->fd_table_lock);
+        return EMFILE;
+    } 
+    lock_release(curproc->file_descriptor_table->fd_table_lock);
+
     struct vnode *vn;
     err = vfs_open(path, flags, 0, &vn);
     kfree(path);
@@ -30,18 +44,9 @@ sys__open(const char *filename, int flags, int *retval) {
         return err;
     }
     struct file_entry *file_entry = file_entry_create(flags, 0, vn);
-    lock_acquire(curproc->file_descriptor_table->fd_table_lock);
+    // lock_acquire(curproc->file_descriptor_table->fd_table_lock);
     *retval = fd_table_add(curproc->file_descriptor_table, file_entry);
-    lock_release(curproc->file_descriptor_table->fd_table_lock);
-    if (*retval == -1) {
-        // fd_table_add will return -1 in the event that the fd table is full
-        kfree(vn);
-        return EMFILE;
-    } 
-    return 0;
-    
-    struct file_entry *file_entry = file_entry_create(flags, 0, vn);
-    *retval = fd_table_add(curproc->file_descriptor_table, file_entry);
+    // lock_release(curproc->file_descriptor_table->fd_table_lock);
     if (*retval == -1) {
         // fd_table_add will return -1 in the event that the fd table is full
         kprintf("table full\n");
