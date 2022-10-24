@@ -39,7 +39,6 @@ sys__open(const char *filename, int flags, int *retval) {
     kfree(path);
     kfree(length);
     if (err) {
-        kfree(vn);
         *retval = -1;
         return err;
     }
@@ -49,7 +48,6 @@ sys__open(const char *filename, int flags, int *retval) {
     // lock_release(curproc->file_descriptor_table->fd_table_lock);
     if (*retval == -1) {
         // fd_table_add will return -1 in the event that the fd table is full
-        kprintf("table full\n");
         file_entry_destroy(file_entry);
         kfree(vn);
         return EMFILE;

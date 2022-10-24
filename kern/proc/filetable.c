@@ -46,10 +46,11 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
 // returns -1 on error (EBADF)
 int 
 fd_table_remove(struct fd_table *fd_table, int fd) {
-    if (fd_table->count[fd] != 1 || fd >= OPEN_MAX || fd < 0) {
+    if (fd >= (int)OPEN_MAX || fd < 0 || fd_table->count[fd] != 1) {
         lock_release(fd_table->fd_table_lock);
         return -1;
     } 
+    
     KASSERT(fd_table->file_entries[fd]->ref_count >= 1);
     fd_table->file_entries[fd]->ref_count -= 1;
     if (fd_table->file_entries[fd]->ref_count == 0) {

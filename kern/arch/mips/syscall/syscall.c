@@ -116,13 +116,13 @@ syscall(struct trapframe *tf)
 
 	    /* Add stuff here */
 		case SYS_open:
-		kprintf("open\n");
+		// kprintf("open\n");
 		err = sys__open((const char *)tf->tf_a0,
 				 (int)tf->tf_a1, &retval);
 		break;
 
 		case SYS_read:
-		kprintf("read\n");
+		// kprintf("read\n");
 		err = sys__read((int)tf->tf_a0, (void *)tf->tf_a1,(size_t)tf->tf_a2, &retval);
 		break;
 
@@ -132,14 +132,14 @@ syscall(struct trapframe *tf)
 		break;
 
 		case SYS_lseek:
-		kprintf("lseek\n");
+		// kprintf("lseek\n);
 		copyin((const_userptr_t) tf->tf_sp + 16, &whence, sizeof(int));
 		join32to64((uint32_t)tf->tf_a2, (uint32_t)tf->tf_a3, &offset);
 		err = sys__lseek((int)tf->tf_a0, (off_t)offset, whence, &retvallseek);
 		break;
 
 		case SYS_close:
-		kprintf("close\n");
+		// kprintf("close\n");
 		err = sys__close((int)tf->tf_a0);
 		break;
 
@@ -149,12 +149,12 @@ syscall(struct trapframe *tf)
 		break;
 
 		case SYS_chdir:
-		kprintf("chdir\n");
+		// kprintf("chdir\n");
 		err = sys__chdir((const char*)tf->tf_a0);
 		break;
 
 		case SYS___getcwd:
-		kprintf("getcwd\n");
+		// kprintf("getcwd\n");
 		err = sys__getcwd((char *)tf->tf_a0, (size_t)tf->tf_a1, &retval);
 		break;
 
