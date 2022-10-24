@@ -37,7 +37,6 @@ simple_test()
 	if (fd<0) {
 		err(1, "%s: open for write", file);
 	}
-
 	rv = write(fd, writebuf, 40);
 	if (rv<0) {
 		err(1, "%s: write", file);
@@ -358,17 +357,17 @@ int
 main()
 {
 	(void) test_openfile_limits;
-	// test_openfile_limits();
-	// printf("Passed Part 1 of fsyscalltest\n");
-	// (void) simple_test;
-	simple_test();
-	printf("Passed Part 2 of fsyscalltest\n");
+	//test_openfile_limits();
+	//printf("Passed Part 1 of fsyscalltest\n");
+	(void) simple_test;
+	//simple_test();
+	//printf("Passed Part 2 of fsyscalltest\n");
 	(void) simultaneous_write_test;
 	// simultaneous_write_test();
 	// printf("Passed Part 3 of fsyscalltest\n");
-	(void) test_dup2;
-	// test_dup2();
-	// printf("Passed Part 4 of fsyscalltest\n");
+	// (void) test_dup2;
+	test_dup2();
+	printf("Passed Part 4 of fsyscalltest\n");
 	(void) dir_test;
 	// dir_test();
 	// printf("Passed Part 5 of fsyscalltest\n");

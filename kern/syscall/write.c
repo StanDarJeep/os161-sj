@@ -28,7 +28,7 @@ sys__write(int fd, void *buf, size_t buflen, int *retval) {
         return EBADF;
     }
     lock_acquire(file_entry->file_entry_lock);
-    if (file_entry->status != WRITE && file_entry->status != READ_WRITE) {
+    if (!((file_entry->status & WRITE) == WRITE) && !((file_entry->status & READ_WRITE) == READ_WRITE)) {
         lock_release(file_entry->file_entry_lock);
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         return EBADF;

@@ -20,9 +20,9 @@ struct open_file_table {
 extern struct open_file_table open_file_table;
 
 enum file_status {
-    READ,
-    WRITE,
-    READ_WRITE,
+    READ = 0,
+    WRITE = 1,
+    READ_WRITE = 2,
 };
 
 struct file_entry {

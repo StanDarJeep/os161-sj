@@ -47,6 +47,8 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
 int 
 fd_table_remove(struct fd_table *fd_table, int fd) {
     if (fd_table->count[fd] != 1 || fd >= OPEN_MAX || fd < 0) {
+        kprintf("fd = %d\n", fd);
+        kprintf("count[fd] = %d\n", fd_table->count[fd]);
         lock_release(fd_table->fd_table_lock);
         return -1;
     } 
