@@ -16,7 +16,8 @@ On error, return error code
 */
 int
 sys__read(int fd, void *buf, size_t buflen, int *retval) {
-    //Check to see if file descriptor is valid and points to valid file entry
+
+    // Check to see if file descriptor is valid and points to valid file entry
     lock_acquire(curproc->file_descriptor_table->fd_table_lock);
     if (fd < 0 || fd > OPEN_MAX) {
         lock_release(curproc->file_descriptor_table->fd_table_lock);
@@ -29,12 +30,14 @@ sys__read(int fd, void *buf, size_t buflen, int *retval) {
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         return EBADF;
     }
+
+    // Check that the status of the file entry allows for reading
     if (file_entry->status & WRITE) {
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         return EBADF;
     }
     
-    //setup uio
+    // Setup uio struct
     struct iovec iovec;
     struct uio uio;
 
@@ -48,6 +51,7 @@ sys__read(int fd, void *buf, size_t buflen, int *retval) {
     uio.uio_segflg = UIO_USERSPACE;
     uio.uio_space = curproc->p_addrspace;
 
+    // Read the file and give the result to user output through VOP_READ
     int err = VOP_READ(file_entry->file, &uio);
     if (err) {
         lock_release(open_file_table.open_file_table_lock);
@@ -55,7 +59,7 @@ sys__read(int fd, void *buf, size_t buflen, int *retval) {
         return err;
     }
 
-    //set the offset
+    // Set the offset
     file_entry->offset += (off_t)(buflen - uio.uio_resid);
     lock_release(open_file_table.open_file_table_lock);
     lock_release(curproc->file_descriptor_table->fd_table_lock);

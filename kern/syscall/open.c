@@ -20,6 +20,8 @@ int
 sys__open(const char *filename, int flags, int *retval) {
     char *path = kmalloc(PATH_MAX * sizeof(char));
     size_t *length = kmalloc(sizeof(size_t));
+
+    // We must copyin the filename parameter userspace address
     int err = copyinstr((const_userptr_t)filename, path, PATH_MAX, length);
     if (err)
     {
@@ -28,7 +30,7 @@ sys__open(const char *filename, int flags, int *retval) {
         return err;
     }
     
-    //Check if fd_table is full
+    // Check if fd_table is full
     lock_acquire(curproc->file_descriptor_table->fd_table_lock);
     int index = -1;
     for (int i = 0; i < OPEN_MAX; i++) {
@@ -43,6 +45,7 @@ sys__open(const char *filename, int flags, int *retval) {
     } 
     lock_release(curproc->file_descriptor_table->fd_table_lock);
 
+    // Open the specified file using vfs_open
     struct vnode *vn;
     err = vfs_open(path, flags, 0, &vn);
     kfree(path);
@@ -51,9 +54,11 @@ sys__open(const char *filename, int flags, int *retval) {
         *retval = -1;
         return err;
     }
+    // Create the file entry and add the entry to the process' fd_table
     struct file_entry *file_entry = file_entry_create(flags, 0, vn);
     *retval = fd_table_add(curproc->file_descriptor_table, file_entry);
     if (*retval == -1) {
+
         // fd_table_add will return -1 in the event that the fd table is full
         file_entry_destroy(file_entry);
         kfree(vn);

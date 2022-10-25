@@ -116,45 +116,37 @@ syscall(struct trapframe *tf)
 
 	    /* Add stuff here */
 		case SYS_open:
-		// kprintf("open\n");
 		err = sys__open((const char *)tf->tf_a0,
 				 (int)tf->tf_a1, &retval);
 		break;
 
 		case SYS_read:
-		// kprintf("read\n");
 		err = sys__read((int)tf->tf_a0, (void *)tf->tf_a1,(size_t)tf->tf_a2, &retval);
 		break;
 
 		case SYS_write:
-		//kprintf("write\n");
 		err = sys__write((int)tf->tf_a0, (void *)tf->tf_a1,(size_t)tf->tf_a2, &retval);
 		break;
 
 		case SYS_lseek:
-		// kprintf("lseek\n);
-		copyin((const_userptr_t) tf->tf_sp + 16, &whence, sizeof(int));
-		join32to64((uint32_t)tf->tf_a2, (uint32_t)tf->tf_a3, &offset);
-		err = sys__lseek((int)tf->tf_a0, (off_t)offset, whence, &retvallseek);
+		copyin((const_userptr_t) tf->tf_sp + 16, &whence, sizeof(int));        // copyin the address sp + 16 as lseek requires more registers
+		join32to64((uint32_t)tf->tf_a2, (uint32_t)tf->tf_a3, &offset);         // join the 32 bit values in a2 and a3 in order to get the offset
+		err = sys__lseek((int)tf->tf_a0, (off_t)offset, whence, &retvallseek); // lseek must have a 64 bit retval as it returns a 64 bit offset upon success
 		break;
 
 		case SYS_close:
-		// kprintf("close\n");
 		err = sys__close((int)tf->tf_a0);
 		break;
 
 		case SYS_dup2:
-		// kprintf("dup2\n");
 		err = sys__dup2((int)tf->tf_a0, (int)tf->tf_a1, &retval);
 		break;
 
 		case SYS_chdir:
-		// kprintf("chdir\n");
 		err = sys__chdir((const char*)tf->tf_a0);
 		break;
 
 		case SYS___getcwd:
-		// kprintf("getcwd\n");
 		err = sys__getcwd((char *)tf->tf_a0, (size_t)tf->tf_a1, &retval);
 		break;
 
@@ -178,7 +170,8 @@ syscall(struct trapframe *tf)
 		/* Success. */
 		if (callno == SYS_lseek)
 		{
-			split64to32(retvallseek, &tf->tf_v0, &tf->tf_v1);
+			split64to32(retvallseek, &tf->tf_v0, &tf->tf_v1); // in the event that lseek was called, we must split the 64 bit return value
+			                                                  // and assign the 32 bit fragments into v0 and v1
 			tf->tf_a3 = 0;
 		}
 		else {
