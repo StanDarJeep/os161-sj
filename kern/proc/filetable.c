@@ -59,6 +59,7 @@ fd_table_remove(struct fd_table *fd_table, int fd) {
     } 
     KASSERT(fd_table->file_entries[fd]->ref_count >= 1);
     fd_table->file_entries[fd]->ref_count -= 1;
+    // if there are no longer any references to the file entry then we should destroy it
     if (fd_table->file_entries[fd]->ref_count == 0) {
         vfs_close(fd_table->file_entries[fd]->file);
         file_entry_destroy(fd_table->file_entries[fd]);
@@ -68,7 +69,9 @@ fd_table_remove(struct fd_table *fd_table, int fd) {
     return 0;
 }
 
-// consider a big lock solution for the entire open file table
+/*
+Initializer function for the open file table
+*/
 void 
 open_file_table_init(struct open_file_table *ft) {
     ft->entries = array_create();
@@ -76,6 +79,9 @@ open_file_table_init(struct open_file_table *ft) {
     ft->open_file_table_lock = lock_create("open_file_table_lock");
 }
 
+/*
+This function adds a file entry into the open file table. Called everytime a file entry is created
+*/
 int 
 open_file_table_add(struct open_file_table *oft, struct file_entry *file_entry) {
 
@@ -87,6 +93,10 @@ open_file_table_add(struct open_file_table *oft, struct file_entry *file_entry) 
     return err;
 }
 
+/*
+This function creates a file entry from the given fields. Calls open_file_table_add, as each file entry should exist in
+the open file table
+*/
 struct file_entry * 
 file_entry_create(enum file_status file_status, off_t offset, struct vnode *vnode) {
     struct file_entry *file_entry = kmalloc(sizeof(*file_entry));
@@ -98,6 +108,10 @@ file_entry_create(enum file_status file_status, off_t offset, struct vnode *vnod
     return file_entry;
 }
 
+/*
+This function removes a file entry from the open file table. Calls open_file_table_getIndexOf in order to determine which file
+entry must be removed from the structure
+*/
 int
 open_file_table_remove(struct open_file_table *oft, struct file_entry *file_entry) {
     lock_acquire(oft->open_file_table_lock);
@@ -113,8 +127,8 @@ open_file_table_remove(struct open_file_table *oft, struct file_entry *file_entr
 }
 
 /*
-    Helper function to return index of file_entry in open_file_table. Returns -1 if it doesn't exist
-    THIS FUNCTION REQUIRES THE OPEN FILE TABLE LOCK BEFOREHAND
+Helper function to return index of file_entry in open_file_table. Returns -1 if it doesn't exist
+THIS FUNCTION REQUIRES THE OPEN FILE TABLE LOCK BEFOREHAND
 */
 int 
 open_file_table_getIndexOf(struct open_file_table *oft, struct file_entry *file_entry){
@@ -132,6 +146,9 @@ open_file_table_getIndexOf(struct open_file_table *oft, struct file_entry *file_
     return -1;
 }
 
+/*
+This function destroys a file entry by calling open_file_table_remove and then freeing the memory
+*/
 int
 file_entry_destroy(struct file_entry *file_entry) {
     int i = open_file_table_remove(&open_file_table, file_entry);
@@ -142,6 +159,9 @@ file_entry_destroy(struct file_entry *file_entry) {
     return 0;
 }
 
+/*
+This function destroys an fd_table in the event that an error occurs during the initial process creation
+*/
 void 
 fd_table_destroy(struct fd_table *fd_table) {
     for (int i = 0; i < OPEN_MAX; i++) {
