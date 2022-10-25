@@ -151,15 +151,12 @@ void
 lseek_loc_negative(void)
 {
 	int fd, rv;
-
 	fd = open_testfile(NULL);
 	if (fd<0) {
 		return;
 	}
-
 	rv = lseek(fd, -309, SEEK_SET);
 	report_test(rv, errno, EINVAL, "lseek to negative offset");
-
 	close(fd);
 	remove(TESTFILE);
 }
@@ -239,7 +236,6 @@ void
 test_lseek(void)
 {
 	test_lseek_fd();
-
 	lseek_fd_device();
 	lseek_file_stdin();
 	lseek_loc_negative();

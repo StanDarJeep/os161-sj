@@ -20,20 +20,20 @@ On error, return corresponding error code
 int 
 sys__lseek(int fd, off_t pos, int whence, int64_t *retval)
 {
-    kprintf("fd is: %d\n", fd);
     lock_acquire(curproc->file_descriptor_table->fd_table_lock);
     if (fd >= OPEN_MAX || fd < 0 || curproc->file_descriptor_table->count[fd] != 1 ) {
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         *retval = -1;
         return EBADF;
     }
-    if (fd < 3) {
+    if (fd < 3 || !VOP_ISSEEKABLE(curproc->file_descriptor_table->file_entries[fd]->file)) {
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         *retval = -1;
         return ESPIPE;
     }
     if (whence == SEEK_SET) {
         if (pos < 0) {
+            lock_release(curproc->file_descriptor_table->fd_table_lock);
             *retval = -1;
             return EINVAL;
         }
