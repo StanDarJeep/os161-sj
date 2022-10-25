@@ -36,6 +36,7 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
             break;
         }
     }
+
     // check if the fd_table was full
     if (index == -1){
         lock_release(fd_table->fd_table_lock);
@@ -59,6 +60,7 @@ fd_table_remove(struct fd_table *fd_table, int fd) {
     } 
     KASSERT(fd_table->file_entries[fd]->ref_count >= 1);
     fd_table->file_entries[fd]->ref_count -= 1;
+
     // if there are no longer any references to the file entry then we should destroy it
     if (fd_table->file_entries[fd]->ref_count == 0) {
         vfs_close(fd_table->file_entries[fd]->file);
@@ -127,7 +129,8 @@ open_file_table_remove(struct open_file_table *oft, struct file_entry *file_entr
 }
 
 /*
-Helper function to return index of file_entry in open_file_table. Returns -1 if it doesn't exist
+Helper function to return index of file_entry in open_file_table, by iterating over the entire structure and comparing each field.
+Returns -1 if it doesn't exist.
 THIS FUNCTION REQUIRES THE OPEN FILE TABLE LOCK BEFOREHAND
 */
 int 
