@@ -8,6 +8,14 @@
 #include <copyinout.h>
 #include <synch.h>
 
+/*
+    open opens the file, device, or other kernel object named by the pathname filename. 
+    The flags argument specifies how to open the file.
+
+    The file descriptor is stored in retVal
+    On success, return 0
+    On error, return error code
+*/
 int
 sys__open(const char *filename, int flags, int *retval) {
     char *path = kmalloc(PATH_MAX * sizeof(char));
@@ -20,6 +28,7 @@ sys__open(const char *filename, int flags, int *retval) {
         return err;
     }
     
+    //Check if fd_table is full
     lock_acquire(curproc->file_descriptor_table->fd_table_lock);
     int index = -1;
     for (int i = 0; i < OPEN_MAX; i++) {

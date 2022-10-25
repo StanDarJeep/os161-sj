@@ -3,6 +3,9 @@
 #include <syscall.h>
 #include <copyinout.h>
 
+/*
+The current directory of the current process is set to the directory named by pathname.
+*/
 int 
 sys__chdir(const char *pathname)
 {
