@@ -3,6 +3,9 @@
 #include <synch.h>
 #include <vfs.h>
 
+/*
+Initializer function for fd_table
+*/
 struct fd_table *
 fd_table_create()
 {
@@ -12,14 +15,16 @@ fd_table_create()
         return NULL;
     }
 
-    fd_table->file_entries = kmalloc(OPEN_MAX * sizeof(struct file_entry));
+    fd_table->file_entries = kmalloc(OPEN_MAX * sizeof(struct file_entry)); // max size of the fd_table is denoted by OPEN_MAX
     fd_table->count = kmalloc(OPEN_MAX * sizeof(int));
-    for (int i = 0; i < OPEN_MAX; i++) fd_table->count[i] = 0;
+    for (int i = 0; i < OPEN_MAX; i++) fd_table->count[i] = 0;              // count array should be zeroes upon initialization
     fd_table->fd_table_lock = lock_create("fd_table_lock");
     return fd_table;
 }
 
-// returns the fd
+/*
+This function adds a file entry into the fd_table. Returns the index upon success. If the fd_table is full, returns -1.
+*/
 int 
 fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
 {
@@ -31,6 +36,7 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
             break;
         }
     }
+    // check if the fd_table was full
     if (index == -1){
         lock_release(fd_table->fd_table_lock);
         return -1;
@@ -41,7 +47,9 @@ fd_table_add(struct fd_table *fd_table, struct file_entry *file_entry)
     return index;
 }
 
-// returns -1 on error (EBADF)
+/*
+This function removes a file entry from the fd_table. Returns 0 upon success. If the fd was invalid, returns -1.
+*/
 int 
 fd_table_remove(struct fd_table *fd_table, int fd) {
     lock_acquire(fd_table->fd_table_lock);

@@ -213,6 +213,7 @@ proc_create_runprogram(const char *name)
 	char *con = NULL;
 	int result;
 
+	// open stdin for reading
     struct vnode *vn_stdin;
 	con = kstrdup("con:");
 	result = vfs_open(con, O_RDONLY, 0, &vn_stdin);
@@ -221,9 +222,11 @@ proc_create_runprogram(const char *name)
 		fd_table_destroy(newproc->file_descriptor_table);
 		return NULL;
 	}
+	// create file entry for stdin and add it to the fd_table of our process
 	struct file_entry *file_entry_stdin = file_entry_create(O_RDONLY, 0, vn_stdin);
 	fd_table_add(newproc->file_descriptor_table, file_entry_stdin);
 
+    // open stdout for reading and writing
 	struct vnode *vn_stdout;
 	con = kstrdup("con:");
 	result = vfs_open(con, O_RDWR, 0, &vn_stdout);
@@ -232,9 +235,11 @@ proc_create_runprogram(const char *name)
 		fd_table_destroy(newproc->file_descriptor_table);
 		return NULL;
 	}
+	// create file entry for stdout and add it to the fd_table of our process
 	struct file_entry *file_entry_stdout = file_entry_create(O_RDWR, 0, vn_stdout);
 	fd_table_add(newproc->file_descriptor_table, file_entry_stdout);
 
+    // open stderr for reading and writing
 	struct vnode *vn_stderr;
 	con = kstrdup("con:");
 	result = vfs_open(con, O_RDWR, 0, &vn_stderr);
@@ -243,6 +248,7 @@ proc_create_runprogram(const char *name)
 		fd_table_destroy(newproc->file_descriptor_table);
 		return NULL;
 	}
+	// create file entry for stderr and add it to the fd_table of our process
 	struct file_entry *file_entry_stderr = file_entry_create(O_RDWR, 0, vn_stderr);
 	fd_table_add(newproc->file_descriptor_table, file_entry_stderr);
 

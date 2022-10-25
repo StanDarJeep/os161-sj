@@ -210,7 +210,7 @@ void
 kmain(char *arguments)
 {
 	boot();
-	open_file_table_init(&open_file_table);
+	open_file_table_init(&open_file_table); // initialize global open file table
 	menu(arguments);
 
 	/* Should not get here */
