@@ -10,6 +10,13 @@
 #include <kern/stat.h>
 #include <vnode.h>
 
+/*
+lseek alters the current seek position of the file handle filehandle, 
+seeking to a new position based on pos and whence.
+New position is stored in retval
+On success, return 0
+On error, return corresponding error code
+*/
 int 
 sys__lseek(int fd, off_t pos, int whence, int64_t *retval)
 {

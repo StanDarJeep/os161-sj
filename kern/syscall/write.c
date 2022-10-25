@@ -17,6 +17,7 @@ On error, return error code
 */
 int
 sys__write(int fd, void *buf, size_t buflen, int *retval) {
+    //Check to see if file descriptor is valid and points to valid file entry
     lock_acquire(curproc->file_descriptor_table->fd_table_lock);
     if (fd < 0 || fd > OPEN_MAX) {
         lock_release(curproc->file_descriptor_table->fd_table_lock);
@@ -35,6 +36,7 @@ sys__write(int fd, void *buf, size_t buflen, int *retval) {
         return EBADF;
     }
     
+    //setup uio
     struct iovec iovec;
     struct uio uio;
 
@@ -54,6 +56,7 @@ sys__write(int fd, void *buf, size_t buflen, int *retval) {
         return err;
     }
 
+    //set the offset
     file_entry->offset += (off_t)(buflen - uio.uio_resid);
     lock_release(open_file_table.open_file_table_lock);
     lock_release(curproc->file_descriptor_table->fd_table_lock);

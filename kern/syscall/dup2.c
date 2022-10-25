@@ -51,6 +51,7 @@ int sys__dup2(int oldfd, int newfd, int *retval) {
         return EMFILE;
     }
     
+    //dup the old fd into newfd in the fd_table
     curproc->file_descriptor_table->file_entries[newfd] = curproc->file_descriptor_table->file_entries[oldfd];
     curproc->file_descriptor_table->file_entries[newfd]->ref_count += 1;
     curproc->file_descriptor_table->count[newfd] = 1;
