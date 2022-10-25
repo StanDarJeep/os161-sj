@@ -33,6 +33,7 @@ sys__read(int fd, void *buf, size_t buflen, int *retval) {
 
     // Check that the status of the file entry allows for reading
     if (file_entry->status & WRITE) {
+        lock_release(open_file_table.open_file_table_lock);
         lock_release(curproc->file_descriptor_table->fd_table_lock);
         return EBADF;
     }
