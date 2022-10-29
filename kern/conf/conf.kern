@@ -384,6 +384,7 @@ file      syscall/lseek.c
 file      syscall/dup2.c
 file      syscall/__getcwd.c
 file      syscall/getpid.c
+file      syscall/fork.c
 
 file      proc/pidtable.c
 

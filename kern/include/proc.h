@@ -61,7 +61,10 @@ struct proc {
 	struct fd_table *file_descriptor_table;
 
 	pid_t pid;
+<<<<<<< HEAD
 	struct lock *pid_lock;
+=======
+>>>>>>> 3599016588e25f075f28080b06e6bfd72c161233
 };
 
 extern struct proc *kproc;
