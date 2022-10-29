@@ -6,6 +6,7 @@
 #include <addrspace.h>
 #include <synch.h>
 #include <machine/trapframe.h>
+#include <pidtable.h>
 
 /*
 fork duplicates the currently running process. 
@@ -20,9 +21,13 @@ On error, no new process is created. fork, only returns once, returning -1,
 and errno is set according to the error encountered
 */
 int sys__fork(struct trapframe *tf, int *retval) {
-    *retval = 420;
     int err;
     struct proc *newproc = proc_create_runprogram("new proc");
+
+    /*
+    Get PID
+    */
+    pid_table_add(&pid_table, newproc);
 
     /*
     Copy address space
@@ -34,6 +39,7 @@ int sys__fork(struct trapframe *tf, int *retval) {
     if (err != 0) {
         proc_destroy(newproc);
         as_destroy(current_addrspace);
+        *retval = -1;
         return err;
     }
 
@@ -61,6 +67,7 @@ int sys__fork(struct trapframe *tf, int *retval) {
         proc_destroy(newproc);
         as_destroy(current_addrspace);
         kfree(newtf);
+        *retval = -1;
         return ENOMEM;
     }
     memcpy((void *)newtf, (const void *)tf, sizeof(struct trapframe));
@@ -71,12 +78,14 @@ int sys__fork(struct trapframe *tf, int *retval) {
     /*
     Kernel thread that returns to usermode
     */
-   
     err = thread_fork("new_thread", newproc, &enter_forked_process, (void *)newtf, 0);
     if (err != 0) {
         proc_destroy(newproc);
         as_destroy(current_addrspace);
         kfree(newtf);
+        *retval = -1;
+        return err;
     }
+    *retval = newproc->pid;
     return err;
 }
