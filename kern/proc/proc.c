@@ -51,6 +51,7 @@
 #include <vfs.h>
 #include <kern/fcntl.h>
 #include <synch.h>
+#include <pidtable.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -85,6 +86,7 @@ proc_create(const char *name)
 	/* VFS fields */
 	proc->p_cwd = NULL;
 
+	proc_pid_init(proc);
 	return proc;
 }
 
@@ -170,6 +172,7 @@ proc_destroy(struct proc *proc)
 
 	threadarray_cleanup(&proc->p_threads);
 	spinlock_cleanup(&proc->p_lock);
+	proc_pid_destroy(proc);
 
 	kfree(proc->p_name);
 	kfree(proc);

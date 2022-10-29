@@ -50,6 +50,7 @@
 #include <test.h>
 #include <version.h>
 #include <filetable.h>
+#include <pidtable.h>
 #include "autoconf.h"  // for pseudoconfig
 
 /*
@@ -72,7 +73,7 @@ static const char harvard_copyright[] =
     "   President and Fellows of Harvard College.  All rights reserved.\n";
 
 struct open_file_table open_file_table;
-
+struct pid_table pid_table;
 /*
  * Initial boot sequence.
  */
@@ -211,6 +212,7 @@ kmain(char *arguments)
 {
 	boot();
 	open_file_table_init(&open_file_table); // initialize global open file table
+	pid_table_init(&pid_table); // initialize global pid table
 	menu(arguments);
 
 	/* Should not get here */

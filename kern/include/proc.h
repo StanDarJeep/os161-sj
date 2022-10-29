@@ -59,9 +59,11 @@ struct proc {
 
 	/* add more material here as needed */
 	struct fd_table *file_descriptor_table;
+
+	pid_t pid;
+	struct lock *pid_lock;
 };
 
-/* This is the process structure for the kernel and for kernel-only threads. */
 extern struct proc *kproc;
 
 /* Call once during system startup to allocate data structures. */

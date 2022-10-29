@@ -67,5 +67,6 @@ int sys__chdir(const char *pathname);
 int sys__dup2(int oldfd, int newfd, int *retval);
 int sys__getcwd(char *buf, size_t buflen, int *retval);
 int sys__fork(void);
+int sys__getpid(int *retval);
 
 #endif /* _SYSCALL_H_ */
