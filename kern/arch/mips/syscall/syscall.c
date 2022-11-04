@@ -214,7 +214,11 @@ void
 enter_forked_process(void *tf, unsigned long num)
 {
 	(void)num;
+	struct trapframe newtf = *(struct trapframe *) tf;
+	kfree(tf);
+	//kprintf("reached 1\n");
 	as_activate();
-	mips_usermode(tf);
+	//kprintf("reached 2\n");
+	mips_usermode(&newtf);
 }
 

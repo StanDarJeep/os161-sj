@@ -31,9 +31,7 @@ int sys__fork(struct trapframe *tf, int *retval) {
     /*
     Copy address space
     */
-    spinlock_acquire(&curproc->p_lock);
-	struct addrspace *current_addrspace = curproc->p_addrspace;
-	spinlock_release(&curproc->p_lock);
+	struct addrspace *current_addrspace = proc_getas();
     err = as_copy(current_addrspace, &newproc->p_addrspace);
     if (err != 0) {
         proc_destroy(newproc);
@@ -67,13 +65,14 @@ int sys__fork(struct trapframe *tf, int *retval) {
         *retval = -1;
         return ENOMEM;
     }
-    memcpy((void *)newtf, (const void *)tf, sizeof(struct trapframe));
+    memmove((void *)newtf, (const void *)tf, sizeof(struct trapframe));
     newtf->tf_v0 = 0;
 	newtf->tf_a3 = 0;
 	newtf->tf_epc += 4;
     /*
     Kernel thread that returns to usermode
     */
+
     err = thread_fork("new_thread", newproc, &enter_forked_process, (void *)newtf, 0);
     if (err != 0) {
         proc_destroy(newproc);
