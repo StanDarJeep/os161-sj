@@ -155,6 +155,10 @@ syscall(struct trapframe *tf)
 		err = sys__fork(tf, &retval);
 		break;
 
+		case SYS_getpid:
+		err = sys__getpid(&retval);
+		break;
+
 	    default:
 		kprintf("Unknown syscall %d\n", callno);
 		err = ENOSYS;
@@ -213,3 +217,4 @@ enter_forked_process(void *tf, unsigned long num)
 	as_activate();
 	mips_usermode(tf);
 }
+

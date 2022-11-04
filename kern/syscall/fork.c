@@ -28,7 +28,6 @@ int sys__fork(struct trapframe *tf, int *retval) {
     Get PID
     */
     pid_table_add(&pid_table, newproc);
-
     /*
     Copy address space
     */
@@ -42,7 +41,6 @@ int sys__fork(struct trapframe *tf, int *retval) {
         *retval = -1;
         return err;
     }
-
     /*
     Copy file table
     */
@@ -56,7 +54,6 @@ int sys__fork(struct trapframe *tf, int *retval) {
         }
     }
     lock_release(open_file_table.open_file_table_lock);
-
     /*
     Copy architectural state
     */
@@ -74,7 +71,6 @@ int sys__fork(struct trapframe *tf, int *retval) {
     newtf->tf_v0 = 0;
 	newtf->tf_a3 = 0;
 	newtf->tf_epc += 4;
-
     /*
     Kernel thread that returns to usermode
     */
