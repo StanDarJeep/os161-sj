@@ -146,7 +146,7 @@ if (err) {
 }
 kfree(path_len);
 
-//Get number of arguments in args
+//Get number of arguments (argc) in args
 int argc = 0;
 char *next_arg;
 do {
@@ -156,7 +156,7 @@ do {
         kfree(program_copy);
         return (err);
     }
-} while (next_arg != NULL && argc < ARG_MAX); //figure out how to compare with arg_max
+} while (next_arg != NULL && ((argc+1) * 4) < ARG_MAX); //figure out how to compare with arg_max
 if (next_arg != NULL) {
     kfree(program_copy);
     return E2BIG;
