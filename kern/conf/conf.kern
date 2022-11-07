@@ -385,6 +385,7 @@ file      syscall/dup2.c
 file      syscall/__getcwd.c
 file      syscall/getpid.c
 file      syscall/fork.c
+file      syscall/execv.c
 
 file      proc/pidtable.c
 
