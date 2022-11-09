@@ -14,6 +14,7 @@ void
 pid_table_init(struct pid_table *pid_table) {
     pid_table->procs = kmalloc(PID_MAX * sizeof(struct proc));
     pid_table->occupied = kmalloc(PID_MAX * sizeof(int));
+    pid_table->status = kmalloc(PID_MAX * sizeof(int));
     pid_table->pid_table_lock = lock_create("pid_table lock");
 }
 
@@ -25,7 +26,8 @@ int
 pid_table_add(struct pid_table *pid_table, struct proc *proc) {
     lock_acquire(pid_table->pid_table_lock);
     int index = -1;
-    for (int i = 0; i < PID_MAX; i++) {
+    // process ID must be greater than 0
+    for (int i = 1; i < PID_MAX; i++) {
         if (pid_table->occupied[i] == 0) {
             index = i;
             pid_table->procs[index] = proc;
@@ -40,6 +42,6 @@ pid_table_add(struct pid_table *pid_table, struct proc *proc) {
 
 
 void 
-pid_table_remove(struct pid_table *pid_table) {
-    (void) pid_table;
+pid_table_remove(struct pid_table *pid_table, pid_t pid) {
+    pid_table->occupied[pid] = 0; // handle errors maybe later?
 }

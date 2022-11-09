@@ -25,10 +25,6 @@ int sys__fork(struct trapframe *tf, int *retval) {
     struct proc *newproc = proc_create_runprogram("new proc");
 
     /*
-    Get PID
-    */
-    pid_table_add(&pid_table, newproc);
-    /*
     Copy address space
     */
 	struct addrspace *current_addrspace = proc_getas();
@@ -69,10 +65,15 @@ int sys__fork(struct trapframe *tf, int *retval) {
     newtf->tf_v0 = 0;
 	newtf->tf_a3 = 0;
 	newtf->tf_epc += 4;
+
+    /*
+    Get PID
+    */
+    pid_table_add(&pid_table, newproc); // call pid_table_remove if thread_fork fails
+
     /*
     Kernel thread that returns to usermode
     */
-
     err = thread_fork("new_thread", newproc, &enter_forked_process, (void *)newtf, 0);
     if (err != 0) {
         proc_destroy(newproc);
@@ -81,6 +82,8 @@ int sys__fork(struct trapframe *tf, int *retval) {
         *retval = -1;
         return err;
     }
+    curproc->p_children[newproc->pid] = 1;
+    // potentially dynamically create cv here for waitpid, if memory issues
     *retval = newproc->pid;
     return err;
 }

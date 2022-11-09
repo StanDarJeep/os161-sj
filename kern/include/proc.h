@@ -62,6 +62,8 @@ struct proc {
 
 	pid_t pid;
 	struct lock *pid_lock;
+	struct cv *pid_cv;
+	pid_t *p_children;
 };
 
 extern struct proc *kproc;
