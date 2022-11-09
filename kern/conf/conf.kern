@@ -387,6 +387,7 @@ file      syscall/getpid.c
 file      syscall/fork.c
 file      syscall/waitpid.c
 file      syscall/_exit.c
+file      syscall/execv.c
 
 file      proc/pidtable.c
 
