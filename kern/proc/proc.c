@@ -170,11 +170,10 @@ proc_destroy(struct proc *proc)
 		}
 		as_destroy(as);
 	}
-
 	threadarray_cleanup(&proc->p_threads);
 	spinlock_cleanup(&proc->p_lock);
 	proc_pid_destroy(proc);
-
+	fd_table_destroy(proc->file_descriptor_table);
 	kfree(proc->p_name);
 	kfree(proc);
 }

@@ -7,6 +7,7 @@
 #include <synch.h>
 #include <machine/trapframe.h>
 #include <pidtable.h>
+#include <thread.h>
 
 void 
 sys__exit(int exitcode) {
@@ -29,9 +30,15 @@ sys__exit(int exitcode) {
             pid_table_remove(&pid_table, child->pid); // Scenario 3 cleanup
         }
     }
+
+
     lock_release(pid_table.pid_table_lock);
+    lock_acquire(curproc->pid_lock);
     cv_broadcast(curproc->pid_cv, curproc->pid_lock);
+    lock_release(curproc->pid_lock);
     // free everything
-    proc_destroy(curproc);
-    thread_exit();
+    // struct proc *temp_proc = curproc;
+    // proc_remthread(curthread);
+    // kprintf("pid: %d\n", (int)curproc->pid);
+    thread_leave();
 }

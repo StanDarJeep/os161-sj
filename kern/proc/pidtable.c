@@ -11,9 +11,17 @@ void proc_pid_init(struct proc *proc) {
     proc->p_children = array_create();
 }
 
+static void
+array_clear(struct array *a) {
+    for (int i = (int) (array_num(a) - 1); i >= 0; i--) {
+        array_remove(a, i);
+    }
+}
+
 void proc_pid_destroy(struct proc *proc) {
     lock_destroy(proc->pid_lock);
     cv_destroy(proc->pid_cv);
+    array_clear(proc->p_children);
     array_destroy(proc->p_children);
 }
 
@@ -26,7 +34,7 @@ pid_table_init(struct pid_table *pid_table) {
     for (int i = 0; i < PID_MAX; i++) {
         pid_table->occupied[i] = 0;
         pid_table->status[i] = UNOCCUPIED;
-        pid_table->parent_has_exited = 0;
+        pid_table->parent_has_exited[i] = 0;
     }
     pid_table->pid_table_lock = lock_create("pid_table lock");
 }
