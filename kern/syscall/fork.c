@@ -70,6 +70,9 @@ int sys__fork(struct trapframe *tf, int *retval) {
     Get PID
     */
     pid_table_add(&pid_table, newproc); // call pid_table_remove if thread_fork fails
+    lock_acquire(pid_table.pid_table_lock);
+    pid_table.status[newproc->pid] = ALIVE;
+    lock_release(pid_table.pid_table_lock);
 
     /*
     Kernel thread that returns to usermode
@@ -82,8 +85,7 @@ int sys__fork(struct trapframe *tf, int *retval) {
         *retval = -1;
         return err;
     }
-    curproc->p_children[newproc->pid] = 1;
-    // potentially dynamically create cv here for waitpid, if memory issues
+    err = array_add(curproc->p_children, newproc, NULL);
     *retval = newproc->pid;
     return err;
 }

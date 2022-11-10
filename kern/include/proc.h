@@ -62,8 +62,8 @@ struct proc {
 
 	pid_t pid;
 	struct lock *pid_lock;
-	struct cv *pid_cv;
-	pid_t *p_children;
+	struct cv *pid_cv;        // for waitpid
+	struct array *p_children; // dynamic array of child processes
 };
 
 extern struct proc *kproc;

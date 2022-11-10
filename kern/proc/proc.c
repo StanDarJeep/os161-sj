@@ -179,7 +179,6 @@ proc_destroy(struct proc *proc)
 	proc_pid_destroy(proc);
 
 	kfree(proc->p_name);
-	kfree(proc->p_children);
 	kfree(proc);
 }
 
