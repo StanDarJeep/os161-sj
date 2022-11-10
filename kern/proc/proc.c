@@ -76,10 +76,7 @@ proc_create(const char *name)
 		kfree(proc);
 		return NULL;
 	}
-	proc->p_children = kmalloc(PID_MAX * sizeof(pid_t));
-	for (int i = 0; i < PID_MAX; i++) {
-		proc->p_children[i] = 0;
-	}
+	proc->p_children = array_create();
 
 	threadarray_init(&proc->p_threads);
 	spinlock_init(&proc->p_lock);

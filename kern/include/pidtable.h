@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <types.h>
 #include <synch.h>
+#include <proc.h>
 
 #define UNOCCUPIED -1
 #define ALIVE 0
