@@ -156,7 +156,7 @@ do {
         kfree(program_copy);
         return (err);
     }
-} while (next_arg != NULL && ((argc+1) * 4) < ARG_MAX); //figure out how to compare with arg_max
+} while (next_arg != NULL && ((argc+1) * 4) < ARG_MAX);
 if (next_arg != NULL) {
     kfree(program_copy);
     return E2BIG;
