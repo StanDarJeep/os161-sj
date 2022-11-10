@@ -7,6 +7,7 @@
 #include <synch.h>
 #include <machine/trapframe.h>
 #include <pidtable.h>
+#include <copyinout.h>
 
 int 
 sys__waitpid(pid_t pid, int *status, int options, int *retval) {
@@ -16,14 +17,14 @@ sys__waitpid(pid_t pid, int *status, int options, int *retval) {
     }
 
     lock_acquire(pid_table.pid_table_lock);
-    if (pid > PID_MAX || pid < PID_MIN || pidtable.occupied[pid] == 0) {
+    if (pid > PID_MAX || pid < PID_MIN || pid_table.occupied[pid] == 0) {
         lock_release(pid_table.pid_table_lock);
         *retval = -1;
         return ESRCH;
     }
     int err = -1;
     struct proc *child;
-    for (int i = 0; i < array_num(curproc->p_children); i++) {
+    for (int i = 0; i < (int)array_num(curproc->p_children); i++) {
         child = array_get(curproc->p_children, i);
         if (child->pid == pid) {
             err = 0;
@@ -37,7 +38,7 @@ sys__waitpid(pid_t pid, int *status, int options, int *retval) {
     }
     if (pid_table.status[child->pid] == ZOMBIE) {
         // handle Scenario 2 where the child has already exited
-        int *buf = pid_table.status[child->pid];
+        int *buf = &pid_table.status[child->pid];
         err = copyout(buf, (userptr_t)status, sizeof(int));
         if (err) {
             lock_release(pid_table.pid_table_lock);
@@ -49,7 +50,7 @@ sys__waitpid(pid_t pid, int *status, int options, int *retval) {
         return 0;
     } else {
         // Scenario 1 where the parent waits for the child
-        int *buf = pid_table.status[child->pid];
+        int *buf = &pid_table.status[child->pid];
         err = copyout(buf, (userptr_t)status, sizeof(int));
         if (err) {
             lock_release(pid_table.pid_table_lock);

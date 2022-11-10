@@ -45,8 +45,8 @@ pid_table_add(struct pid_table *pid_table, struct proc *proc) {
             index = i;
             //pid_table->procs[index] = proc;
             pid_table->occupied[i] = 1;
-            pid_table->status[pid] = ALIVE;
-            pid_table->parent_has_exited[pid] = 0;
+            pid_table->status[i] = ALIVE;
+            pid_table->parent_has_exited[i] = 0;
             proc->pid = (pid_t)index;
             lock_release(pid_table->pid_table_lock);
             return 0;
