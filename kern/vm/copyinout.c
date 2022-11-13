@@ -280,7 +280,7 @@ copyinstr(const_userptr_t usersrc, char *dest, size_t len, size_t *actual)
 		curthread->t_machdep.tm_badfaultfunc = NULL;
 		return EFAULT;
 	}
-
+	kprintf("HERE2\n");
 	result = copystr(dest, (const char *)usersrc, len, stoplen, actual);
 
 	curthread->t_machdep.tm_badfaultfunc = NULL;
@@ -313,7 +313,7 @@ copyoutstr(const char *src, userptr_t userdest, size_t len, size_t *actual)
 		curthread->t_machdep.tm_badfaultfunc = NULL;
 		return EFAULT;
 	}
-
+	kprintf("HERE1\n");
 	result = copystr((char *)userdest, src, len, stoplen, actual);
 
 	curthread->t_machdep.tm_badfaultfunc = NULL;
