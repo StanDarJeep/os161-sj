@@ -41,6 +41,7 @@
 #include <sfs.h>
 #include <syscall.h>
 #include <test.h>
+#include <pidtable.h>
 #include "opt-synchprobs.h"
 #include "opt-sfs.h"
 #include "opt-net.h"
@@ -126,6 +127,7 @@ common_prog(int nargs, char **args)
 	if (proc == NULL) {
 		return ENOMEM;
 	}
+	pid_table_add(&pid_table, proc);
 
 	result = thread_fork(args[0] /* thread name */,
 			proc /* new process */,
@@ -141,7 +143,13 @@ common_prog(int nargs, char **args)
 	 * The new process will be destroyed when the program exits...
 	 * once you write the code for handling that.
 	 */
-	while(1){}
+	array_add(kproc->p_children, proc, NULL);
+
+	int buf;
+	kprintf("AAAAAAAAAAAAAAAAAAAA\n");
+    sys__waitpid(proc->pid, NULL, 0, &buf);
+	kprintf("BBBBBBBBBBBBBBB\n");
+	kprintf("buf val: %d\n", buf);
 	return 0;
 }
 

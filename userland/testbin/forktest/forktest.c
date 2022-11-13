@@ -158,10 +158,15 @@ test(int nowait)
 	 * These must be called in reverse order to avoid waiting
 	 * improperly.
 	 */
+	printf("reached 1\n");
 	dowait(nowait, pid3);
+	printf("reached 2\n");
 	dowait(nowait, pid2);
+	printf("reached 3\n");
 	dowait(nowait, pid1);
+	printf("reached 4\n");
 	dowait(nowait, pid0);
+	printf("reached 5\n");
 
 	putchar('\n');
 }
@@ -171,7 +176,7 @@ main(int argc, char *argv[])
 {
 	static const char expected[] =
 		"|----------------------------|\n";
-	int nowait=1;
+	int nowait=0;
 
 	if (argc==2 && !strcmp(argv[1], "-w")) {
 		nowait=1;

@@ -7,7 +7,7 @@
 #include <proc.h>
 
 #define UNOCCUPIED -1
-#define ALIVE 0
+#define RUNNING 0
 #define ZOMBIE 1
 
 /*
@@ -16,6 +16,7 @@ Pid table structure
 struct pid_table{
 	int *occupied; //array to tell if pid is used or nots
 	int *status;
+	int *exit_codes;
 	int *parent_has_exited;
 	//struct proc **procs;
 	struct lock *pid_table_lock; //lock for pidtable

@@ -212,14 +212,12 @@ wait_siblings_child(const char *semname)
 		}
 		close(semfd);
 	}
-
 	fd = open(TESTFILE, O_RDONLY);
 	if (fd<0) {
 		warn("UH-OH: child process (pid %d) can't open %s",
 		     mypid, TESTFILE);
 		return;
 	}
-
 	/*
 	 * In case the semaphore above didn't work, as a backup
 	 * busy-wait until the parent writes the pids into the

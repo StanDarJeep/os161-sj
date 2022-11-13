@@ -89,5 +89,7 @@ struct addrspace *proc_getas(void);
 /* Change the address space of the current process, and return the old one. */
 struct addrspace *proc_setas(struct addrspace *);
 
+/* Helper function to clean up child processes when exit is called. Requires pid table lock */
+void cleanup_children(void);
 
 #endif /* _PROC_H_ */

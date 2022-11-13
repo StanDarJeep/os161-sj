@@ -188,6 +188,7 @@ proc_bootstrap(void)
 	if (kproc == NULL) {
 		panic("proc_create for kproc failed\n");
 	}
+	kproc->pid = 1;
 }
 
 /*
@@ -377,4 +378,22 @@ proc_setas(struct addrspace *newas)
 	proc->p_addrspace = newas;
 	spinlock_release(&proc->p_lock);
 	return oldas;
+}
+
+/* 
+Helper function to clean up child processes when exit is called. Requires pid table lock
+*/
+void 
+cleanup_children() {
+    struct proc *child;
+    for (int i = 0; i < (int)array_num(curproc->p_children); i++) {
+        child = array_get(curproc->p_children, i);
+        if (pid_table.parent_has_exited[child->pid] == -1) {
+            // if child is zombie
+            pid_table_remove(&pid_table, child->pid); // Scenario 3 cleanup
+            proc_destroy(child);
+        } else {
+            pid_table.parent_has_exited[child->pid] = 1; // mark that the parent has exited for each child process
+        }
+    }
 }

@@ -38,26 +38,32 @@ sys__waitpid(pid_t pid, int *status, int options, int *retval) {
     }
     if (pid_table.status[child->pid] == ZOMBIE) {
         // handle Scenario 2 where the child has already exited
-        int *buf = &pid_table.status[child->pid];
-        err = copyout(buf, (userptr_t)status, sizeof(int));
-        if (err) {
-            lock_release(pid_table.pid_table_lock);
-            kfree(buf);
-            return EFAULT;
+        if (status != NULL) {
+            err = copyout(&pid_table.exit_codes[child->pid], (userptr_t)status, sizeof(int));
+            if (err) {
+                lock_release(pid_table.pid_table_lock);
+                *retval = -1;
+                return EFAULT;
+            }
         }
         lock_release(pid_table.pid_table_lock);
         *retval = child->pid;
         return 0;
     } else {
         // Scenario 1 where the parent waits for the child
-        int *buf = &pid_table.status[child->pid];
-        err = copyout(buf, (userptr_t)status, sizeof(int));
-        if (err) {
-            lock_release(pid_table.pid_table_lock);
-            kfree(buf);
-            return EFAULT;
-        }
+        lock_release(pid_table.pid_table_lock);
+        lock_acquire(child->pid_lock);
         cv_wait(child->pid_cv, child->pid_lock);
+        lock_release(child->pid_lock);
+        lock_acquire(pid_table.pid_table_lock);
+        if (status != NULL) {
+            err = copyout(&pid_table.exit_codes[child->pid], (userptr_t)status, sizeof(int));
+            if (err) {
+                lock_release(pid_table.pid_table_lock);
+                *retval = -1;
+                return EFAULT;
+            }
+        }
         lock_release(pid_table.pid_table_lock);
         *retval = child->pid;
         return 0;
