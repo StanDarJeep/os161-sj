@@ -23,16 +23,21 @@ get_arglen(const char *argument, int max_length, size_t *arglen) {
     char next_char;
     do {
         i++;
-        err = copyin((const_userptr_t) &argument[i], (void*) &next_char, (size_t) sizeof(char));
+        err = copyin((const_userptr_t)&argument[i], (void*) &next_char, (size_t) sizeof(char));
         if (err) return err;
     } while (next_char != 0 && i < max_length);
     if (next_char != 0) {
         return E2BIG;
     }
-    *arglen = i;
+    *arglen = i+1;
     return 0;
 }
 
+/*
+Copy in the arguments from args into kernel. 
+args_copy is the copied args
+
+*/
 static
 int
 copyin_args(int argc, char **args, char **args_copy, int *args_size, int *args_copy_strings_size) {
@@ -50,10 +55,11 @@ copyin_args(int argc, char **args, char **args_copy, int *args_size, int *args_c
             return err;
         }
         args_copy[i] = kmalloc(curr_arg_len * sizeof(char));
-        
-        err = copyinstr((const_userptr_t)&args[i], args_copy[i], curr_arg_len, &actual_len);
+        err = copyinstr((const_userptr_t)args[i], args_copy[i], curr_arg_len, &actual_len);
         if (err) {
-            kfree(args_copy[i]);
+            for (int j = 0; j < i; j++) {
+                kfree(args_copy[j]);
+            }
             return err;
         }
         arg_size_left -= curr_arg_len;
@@ -81,32 +87,57 @@ Returns argv address and and stackptr position
 return 0 on success
 return corresponding error code on error
 */
-static int
-copyout_args(int argc, vaddr_t *stackptr, char **args_copy, int args_copy_strings_size, userptr_t *argv, int *args_size) {
-    //calculate stackptr values based on arg_copy sizes
-    //argc + 1 because argv needs null terminator
-    userptr_t argv_base = (userptr_t)(*stackptr - args_copy_strings_size - ((argc+1) * sizeof(userptr_t)));
-    userptr_t strings_base = (userptr_t) (*stackptr - args_copy_strings_size);
-    //iterate through args_copy and arrange them on stack
-    userptr_t curr_string_ptr = strings_base;
-    userptr_t curr_argv_ptr = argv_base;
-    size_t actual_len;
-    int err;
-    for (int i = 0; i < argc; i++) {
-        //copy out argument string
-        err = copyoutstr(args_copy[i], curr_string_ptr, args_size[i], &actual_len);
-        if (err) return err;
-        //copy out pointer for argument string
-        err = copyout((void*) &curr_string_ptr, curr_argv_ptr, sizeof(char*));
-        if (err) return err;
-        //increment curr pointers
-        curr_argv_ptr += sizeof(userptr_t);
-        curr_string_ptr += args_size[i];
-    }
-    //set the stackptr and arv values
-    *stackptr = (vaddr_t) argv_base;
-    *argv = argv_base;
-    return 0;
+// static int
+// copyout_args(int argc, vaddr_t *stackptr, char **args_copy, int args_copy_strings_size, userptr_t *argv, int *args_size) {
+//     //calculate stackptr values based on arg_copy sizes
+//     //argc + 1 because argv needs null terminator
+//     userptr_t argv_base = (userptr_t)(*stackptr - args_copy_strings_size - ((argc+1) * sizeof(userptr_t)));
+//     userptr_t strings_base = (userptr_t) (*stackptr - args_copy_strings_size);
+//     //iterate through args_copy and arrange them on stack
+//     userptr_t curr_string_ptr = strings_base;
+//     userptr_t curr_argv_ptr = argv_base;
+//     size_t actual_len;
+//     int err;
+//     for (int i = 0; i < argc; i++) {
+//         //copy out argument string
+//         if (curr_string_ptr != NULL) {
+//             err = copyoutstr(args_copy[i], curr_string_ptr, args_size[i], &actual_len);
+//             if (err) return err;
+//         }
+//         //copy out pointer for argument string
+//         if (curr_argv_ptr != NULL) {
+//             err = copyout((void*) args_copy[i], curr_argv_ptr, sizeof(char*));
+//             if (err) return err;
+//         }
+//         //increment curr pointers
+//         curr_argv_ptr += sizeof(userptr_t);
+//         curr_string_ptr += args_size[i];
+//     }
+//     //set the stackptr and arv values
+//     *stackptr = (vaddr_t) argv_base;
+//     *argv = argv_base;
+//     return 0;
+// }
+
+static void
+copyout_args(int argc, vaddr_t *stackptr, char **args_copy, userptr_t *argv, int *args_size) {
+    userptr_t arg_addr = (userptr_t) (*stackptr - argc*sizeof(userptr_t *) - sizeof(NULL));
+	userptr_t *args_out = (userptr_t *) (*stackptr - argc*sizeof(userptr_t *) - sizeof(NULL));
+	for (int i = 0; i < argc; i++) {
+		arg_addr -= args_size[i];
+		*args_out = arg_addr;
+
+        size_t *path_len = kmalloc(sizeof(int));
+        copyoutstr((const char *) args_copy[i], arg_addr, (size_t) args_size[i], path_len);
+        kfree(path_len);
+
+		args_out++;
+	}
+
+	*args_out = NULL;
+	*argv = (userptr_t) (*stackptr - argc*sizeof(int) - sizeof(NULL));
+	arg_addr -= (int) arg_addr % sizeof(void *);
+	*stackptr = (vaddr_t) arg_addr;
 }
 
 /*
@@ -170,7 +201,8 @@ if (args_copy == NULL) {
     return ENOMEM;
 }
 int *args_size = kmalloc(argc * sizeof(int));
-if ( args_size == NULL) {
+if (args_size == NULL) {
+    kfree(args_copy);
     kfree(program_copy);
     return ENOMEM;
 }
@@ -192,7 +224,7 @@ if (err) {
     free_copies(args_copy, args_size, argc);
     return err;
 }
-
+kprintf("HERE1\n");
 /*
 2.
 Get new address space
@@ -204,6 +236,7 @@ if (new_as == NULL) {
     free_copies(args_copy, args_size, argc);
     return ENOMEM;
 }
+kprintf("HERE2\n");
 
 /*
 3.
@@ -211,6 +244,8 @@ Switch to new address space
 */
 proc_setas(new_as);
 as_activate();
+kprintf("HERE3\n");
+
 /*
 4.
 Load new executable
@@ -227,6 +262,8 @@ if (err) {
     return err;
 }
 vfs_close(v);
+kprintf("HERE4\n");
+
 /*
 5.
 Define new stack region
@@ -241,28 +278,31 @@ if (err) {
     free_copies(args_copy, args_size, argc);
     return err;
 }
+kprintf("HERE5\n");
 /*
 6.
 Copy arguments to new address space, properly arranging them
 */
 userptr_t argv;
-err = copyout_args(argc, &stackptr, args_copy, args_copy_strings_size, &argv, args_size);
-if (err) {
-    proc_setas(old_as);
-    as_activate();
-    as_destroy(new_as);
-    kfree(program_copy);
-    free_copies(args_copy, args_size, argc);
-    return err;
-}
+// err = copyout_args(argc, &stackptr, args_copy, args_copy_strings_size, &argv, args_size);
+// if (err) {
+//     proc_setas(old_as);
+//     as_activate();
+//     as_destroy(new_as);
+//     kfree(program_copy);
+//     free_copies(args_copy, args_size, argc);
+//     return err;
+// }
+copyout_args(argc, &stackptr, args_copy, &argv, args_size);
+kprintf("HERE6\n");
 /*
 7.
 Clean up old address space 
 */
 kfree(program_copy);
 free_copies(args_copy, args_size, argc);
-as_destroy(new_as);
-
+as_destroy(old_as);
+kprintf("HERE7\n");
 /*
 8.
 Warp to user mode
