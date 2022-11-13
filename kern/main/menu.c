@@ -150,6 +150,10 @@ common_prog(int nargs, char **args)
     sys__waitpid(proc->pid, NULL, 0, &buf);
 	kprintf("BBBBBBBBBBBBBBB\n");
 	kprintf("buf val: %d\n", buf);
+	lock_acquire(pid_table.pid_table_lock);
+	pid_table_remove(&pid_table, proc->pid); // Scenario 3 cleanup
+	lock_release(pid_table.pid_table_lock);
+    proc_destroy(proc);
 	return 0;
 }
 
