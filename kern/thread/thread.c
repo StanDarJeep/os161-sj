@@ -811,7 +811,10 @@ thread_exit(void)
 	panic("braaaaaaaiiiiiiiiiiinssssss\n");
 }
 
-
+/*
+Performs the same operations as thread_exit, however calls proc_destroy after removing the curthread. Called in exit when a the
+process' parents have already exited. This is necessary as proc_destroy must be called specifically after proc_remthread
+*/
 void
 thread_leave(void)
 {

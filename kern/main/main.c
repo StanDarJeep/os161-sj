@@ -212,7 +212,7 @@ kmain(char *arguments)
 {
 	boot();
 	open_file_table_init(&open_file_table); // initialize global open file table
-	pid_table_init(&pid_table); // initialize global pid table
+	pid_table_init(&pid_table);             // initialize global pid table
 	menu(arguments);
 
 	/* Should not get here */

@@ -158,15 +158,15 @@ test(int nowait)
 	 * These must be called in reverse order to avoid waiting
 	 * improperly.
 	 */
-	printf("reached 1\n");
+	//printf("reached 1\n");
 	dowait(nowait, pid3);
-	printf("reached 2\n");
+	//printf("reached 2\n");
 	dowait(nowait, pid2);
-	printf("reached 3\n");
+	//printf("reached 3\n");
 	dowait(nowait, pid1);
-	printf("reached 4\n");
+	//printf("reached 4\n");
 	dowait(nowait, pid0);
-	printf("reached 5\n");
+	//printf("reached 5\n");
 
 	putchar('\n');
 }

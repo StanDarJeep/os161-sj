@@ -188,7 +188,7 @@ proc_bootstrap(void)
 	if (kproc == NULL) {
 		panic("proc_create for kproc failed\n");
 	}
-	kproc->pid = 1;
+	kproc->pid = 1; // Kernel process always has pid 1
 }
 
 /*
@@ -385,13 +385,19 @@ Helper function to clean up child processes when exit is called. Requires pid ta
 */
 void 
 cleanup_children() {
+
     struct proc *child;
+
     for (int i = 0; i < (int)array_num(curproc->p_children); i++) {
+
         child = array_get(curproc->p_children, i);
+
         if (pid_table.parent_has_exited[child->pid] == -1) {
-            // if child is zombie
-            pid_table_remove(&pid_table, child->pid); // Scenario 3 cleanup
+
+            // if child is zombie, then child was in Scenario 3 and must be cleaned up
+            pid_table_remove(&pid_table, child->pid);
             proc_destroy(child);
+
         } else {
             pid_table.parent_has_exited[child->pid] = 1; // mark that the parent has exited for each child process
         }

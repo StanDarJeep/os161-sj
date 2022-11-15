@@ -21,6 +21,7 @@ On error, no new process is created. fork, only returns once, returning -1,
 and errno is set according to the error encountered
 */
 int sys__fork(struct trapframe *tf, int *retval) {
+
     int err;
     struct proc *newproc = proc_create_runprogram("new proc");
 
@@ -35,6 +36,7 @@ int sys__fork(struct trapframe *tf, int *retval) {
         *retval = -1;
         return err;
     }
+
     /*
     Copy file table
     */
@@ -48,13 +50,14 @@ int sys__fork(struct trapframe *tf, int *retval) {
         }
     }
     lock_release(open_file_table.open_file_table_lock);
+
     /*
     Copy architectural state
     */
     struct trapframe *newtf = kmalloc(sizeof(struct trapframe));
     if (newtf == NULL)
     {
-        // destroy stuff
+        // if newtf is NULL then we are out of memory
         proc_destroy(newproc);
         as_destroy(current_addrspace);
         kfree(newtf);
