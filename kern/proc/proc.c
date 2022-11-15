@@ -50,6 +50,7 @@
 #include <addrspace.h>
 #include <vnode.h>
 #include <filetable.h>
+#include <pidtable.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -74,6 +75,7 @@ proc_create(const char *name)
 		kfree(proc);
 		return NULL;
 	}
+	proc->p_children = array_create();
 
 	threadarray_init(&proc->p_threads);
 	spinlock_init(&proc->p_lock);
@@ -85,6 +87,7 @@ proc_create(const char *name)
 	proc->p_cwd = NULL;
 	proc->p_filetable = NULL;
 
+	proc_pid_init(proc);
 	return proc;
 }
 
@@ -174,7 +177,7 @@ proc_destroy(struct proc *proc)
 
 	threadarray_cleanup(&proc->p_threads);
 	spinlock_cleanup(&proc->p_lock);
-
+	proc_pid_destroy(proc);
 	kfree(proc->p_name);
 	kfree(proc);
 }
@@ -189,6 +192,7 @@ proc_bootstrap(void)
 	if (kproc == NULL) {
 		panic("proc_create for kproc failed\n");
 	}
+	kproc->pid = 1; // Kernel process always has pid 1
 }
 
 /*
@@ -230,6 +234,7 @@ proc_create_runprogram(const char *name)
 
 	return newproc;
 }
+
 
 /*
  * Clone the current process.
@@ -387,4 +392,28 @@ proc_setas(struct addrspace *newas)
 	proc->p_addrspace = newas;
 	spinlock_release(&proc->p_lock);
 	return oldas;
+}
+
+/* 
+Helper function to clean up child processes when exit is called. Requires pid table lock
+*/
+void 
+cleanup_children() {
+
+    struct proc *child;
+
+    for (int i = 0; i < (int)array_num(curproc->p_children); i++) {
+
+        child = array_get(curproc->p_children, i);
+
+        if (pid_table.parent_has_exited[child->pid] == -1) {
+
+            // if child is zombie, then child was in Scenario 3 and must be cleaned up
+            pid_table_remove(&pid_table, child->pid);
+            proc_destroy(child);
+
+        } else {
+            pid_table.parent_has_exited[child->pid] = 1; // mark that the parent has exited for each child process
+        }
+    }
 }

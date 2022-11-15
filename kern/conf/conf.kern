@@ -379,6 +379,12 @@ file      syscall/openfile.c
 file      syscall/runprogram.c
 file      syscall/file_syscalls.c
 file      syscall/time_syscalls.c
+file      syscall/_exit.c
+file      syscall/execv.c
+file      syscall/fork.c
+file      syscall/getpid.c
+file      syscall/waitpid.c
+file      proc/pidtable.c
 
 #
 # Startup and initialization

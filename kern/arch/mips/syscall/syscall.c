@@ -30,14 +30,15 @@
 #include <types.h>
 #include <kern/errno.h>
 #include <kern/syscall.h>
-#include <endian.h>
 #include <lib.h>
 #include <mips/trapframe.h>
 #include <thread.h>
 #include <current.h>
-#include <copyinout.h>
 #include <syscall.h>
-
+#include <endian.h>
+#include <copyinout.h>
+#include <addrspace.h>
+#include <kern/wait.h>
 
 /*
  * System call dispatcher.
@@ -195,7 +196,25 @@ syscall(struct trapframe *tf)
 
 
 	    /* Even more system calls will go here */
+		case SYS_fork:
+		err = sys__fork(tf, &retval);
+		break;
 
+		case SYS_getpid:
+		err = sys__getpid(&retval);
+		break;
+
+		case SYS_waitpid:
+		err = sys__waitpid((pid_t)tf->tf_a0, (int *)tf->tf_a1, (int)tf->tf_a2, &retval);
+		break;
+
+		case SYS__exit:
+		sys__exit(_MKWAIT_EXIT((int)tf->tf_a0));
+		break;
+
+		case SYS_execv:
+		err = sys__execv((const char *)tf->tf_a0, (char **)tf->tf_a1);
+		break;
 
 	    default:
 		kprintf("Unknown syscall %d\n", callno);
@@ -233,15 +252,15 @@ syscall(struct trapframe *tf)
 }
 
 /*
- * Enter user mode for a newly forked process.
- *
- * This function is provided as a reminder. You need to write
- * both it and the code that calls it.
- *
- * Thus, you can trash it and do things another way if you prefer.
+ * Callback function called in fork.
+ * Gets the trapframe from the void pointer, activates the addresspace and then goes into usermode
  */
 void
-enter_forked_process(struct trapframe *tf)
+enter_forked_process(void *tf, unsigned long num)
 {
-	(void)tf;
+	(void)num;
+	struct trapframe newtf = *(struct trapframe *) tf;
+	kfree(tf);
+	as_activate();
+	mips_usermode(&newtf);
 }

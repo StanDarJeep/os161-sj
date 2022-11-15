@@ -58,6 +58,10 @@ struct proc {
 	struct filetable *p_filetable;	/* table of open files */
 
 	/* add more material here as needed */
+	pid_t pid;
+	struct lock *pid_lock;
+	struct cv *pid_cv;        // Used by waitpid
+	struct array *p_children; // Dynamic array of child processes
 };
 
 /* This is the process structure for the kernel and for kernel-only threads. */
@@ -87,5 +91,7 @@ struct addrspace *proc_getas(void);
 /* Change the address space of the current process, and return the old one. */
 struct addrspace *proc_setas(struct addrspace *);
 
+/* Helper function to clean up child processes when exit is called. Requires pid table lock */
+void cleanup_children(void);
 
 #endif /* _PROC_H_ */

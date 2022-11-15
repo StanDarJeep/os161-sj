@@ -41,6 +41,7 @@
 #include <sfs.h>
 #include <syscall.h>
 #include <test.h>
+#include <pidtable.h>
 #include "opt-synchprobs.h"
 #include "opt-sfs.h"
 #include "opt-net.h"
@@ -126,6 +127,7 @@ common_prog(int nargs, char **args)
 	if (proc == NULL) {
 		return ENOMEM;
 	}
+	pid_table_add(&pid_table, proc);
 
 	result = thread_fork(args[0] /* thread name */,
 			proc /* new process */,
@@ -141,7 +143,18 @@ common_prog(int nargs, char **args)
 	 * The new process will be destroyed when the program exits...
 	 * once you write the code for handling that.
 	 */
+	array_add(kproc->p_children, proc, NULL);
 
+	int buf;
+    int err = sys__waitpid(proc->pid, NULL, 0, &buf); // The kernel process must wait for the user program to exit
+	if (err) {
+		proc_destroy(proc);
+		return err;
+	}
+	lock_acquire(pid_table.pid_table_lock);
+	pid_table_remove(&pid_table, proc->pid); // Scenario 3 cleanup
+	lock_release(pid_table.pid_table_lock);
+    proc_destroy(proc);
 	return 0;
 }
 

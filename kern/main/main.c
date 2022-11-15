@@ -49,6 +49,7 @@
 #include <syscall.h>
 #include <test.h>
 #include <version.h>
+#include <pidtable.h>
 #include "autoconf.h"  // for pseudoconfig
 
 
@@ -63,6 +64,7 @@
  */
 extern const int buildversion;
 extern const char buildconfig[];
+struct pid_table pid_table;
 
 /*
  * Copyright message for the OS/161 base code.
@@ -209,7 +211,7 @@ void
 kmain(char *arguments)
 {
 	boot();
-
+	pid_table_init(&pid_table);             // initialize global pid table
 	menu(arguments);
 
 	/* Should not get here */

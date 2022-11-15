@@ -35,6 +35,9 @@
 #define _FILETABLE_H_
 
 #include <limits.h> /* for OPEN_MAX */
+#include <types.h>
+#include <vnode.h>
+#include <array.h>
 
 
 /*

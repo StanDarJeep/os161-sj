@@ -21,7 +21,13 @@ and errno is set according to the error encountered
 int sys__fork(struct trapframe *tf, int *retval) {
 
     int err;
-    struct proc *newproc = proc_create_runprogram("new proc");
+    // struct proc *newproc = proc_create_runprogram("new proc");
+    struct proc *newproc;
+    err = proc_fork(&newproc);
+    if (err) {
+        *retval = -1;
+        return err;
+    }
 
     /*
     Copy address space
@@ -35,19 +41,16 @@ int sys__fork(struct trapframe *tf, int *retval) {
         return err;
     }
 
-    /*
-    Copy file table
-    */
-    lock_acquire(open_file_table.open_file_table_lock);
-    newproc->file_descriptor_table = fd_table_create();
-    for (int i = 0; i < OPEN_MAX; i++) {
-        newproc->file_descriptor_table->count[i] = curproc->file_descriptor_table->count[i];
-        if (newproc->file_descriptor_table->count[i] == 1) {
-            newproc->file_descriptor_table->file_entries[i] = curproc->file_descriptor_table->file_entries[i];
-            newproc->file_descriptor_table->file_entries[i]->ref_count++;
-        }
-    }
-    lock_release(open_file_table.open_file_table_lock);
+    // /*
+    // Copy file table
+    // */
+    // err = filetable_copy(curproc->p_filetable, &newproc->p_filetable);
+    // if (err != 0) {
+    //     proc_destroy(newproc);
+    //     as_destroy(current_addrspace);
+    //     *retval = -1;
+    //     return err;
+    // }
 
     /*
     Copy architectural state
