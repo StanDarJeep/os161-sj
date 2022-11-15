@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "functional": "c",
+        "errno.h": "c",
+        "atomic": "c",
+        "*.tcc": "c",
+        "fstream": "c",
+        "sstream": "c",
+        "chrono": "c",
+        "string_view": "c",
+        "filetable.h": "c",
+        "limits.h": "c",
+        "iosfwd": "cpp",
+        "istream": "cpp",
+        "limits": "cpp",
+        "streambuf": "cpp"
+    }
+}
