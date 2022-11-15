@@ -147,7 +147,7 @@ common_prog(int nargs, char **args)
 
 	int buf;
 	kprintf("AAAAAAAAAAAAAAAAAAAA\n");
-    sys__waitpid(proc->pid, NULL, 0, &buf);
+    sys__waitpid(proc->pid, NULL, 0, &buf); // The kernel process must wait for the user program to exit
 	kprintf("BBBBBBBBBBBBBBB\n");
 	kprintf("buf val: %d\n", buf);
 	lock_acquire(pid_table.pid_table_lock);

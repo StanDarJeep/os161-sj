@@ -207,9 +207,11 @@ wait_siblings_child(const char *semname)
 		     mypid, semname);
 	}
 	else {
+		printf("AAAAAAAAAAAAA\n");
 		if (read(semfd, NULL, 1) < 0) {
 			warn("UH-OH: in pid %d: %s: read", mypid, semname);
 		}
+		printf("BBBBBBBBBBB\n");
 		close(semfd);
 	}
 	fd = open(TESTFILE, O_RDONLY);

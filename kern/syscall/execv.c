@@ -224,7 +224,7 @@ if (err) {
     free_copies(args_copy, args_size, argc);
     return err;
 }
-kprintf("HERE1\n");
+//kprintf("HERE1\n");
 /*
 2.
 Get new address space
@@ -236,7 +236,7 @@ if (new_as == NULL) {
     free_copies(args_copy, args_size, argc);
     return ENOMEM;
 }
-kprintf("HERE2\n");
+//kprintf("HERE2\n");
 
 /*
 3.
@@ -244,7 +244,7 @@ Switch to new address space
 */
 proc_setas(new_as);
 as_activate();
-kprintf("HERE3\n");
+//kprintf("HERE3\n");
 
 /*
 4.
@@ -262,7 +262,7 @@ if (err) {
     return err;
 }
 vfs_close(v);
-kprintf("HERE4\n");
+//kprintf("HERE4\n");
 
 /*
 5.
@@ -278,7 +278,7 @@ if (err) {
     free_copies(args_copy, args_size, argc);
     return err;
 }
-kprintf("HERE5\n");
+//kprintf("HERE5\n");
 /*
 6.
 Copy arguments to new address space, properly arranging them
@@ -294,7 +294,7 @@ userptr_t argv;
 //     return err;
 // }
 copyout_args(argc, &stackptr, args_copy, &argv, args_size);
-kprintf("HERE6\n");
+//kprintf("HERE6\n");
 /*
 7.
 Clean up old address space 
@@ -302,7 +302,7 @@ Clean up old address space
 kfree(program_copy);
 free_copies(args_copy, args_size, argc);
 as_destroy(old_as);
-kprintf("HERE7\n");
+//kprintf("HERE7\n");
 /*
 8.
 Warp to user mode

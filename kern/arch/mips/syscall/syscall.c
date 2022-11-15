@@ -216,12 +216,8 @@ syscall(struct trapframe *tf)
 }
 
 /*
- * Enter user mode for a newly forked process.
- *
- * This function is provided as a reminder. You need to write
- * both it and the code that calls it.
- *
- * Thus, you can trash it and do things another way if you prefer.
+ * Callback function called in fork.
+ * Gets the trapframe from the void pointer, activates the addresspace and then goes into usermode
  */
 void
 enter_forked_process(void *tf, unsigned long num)
