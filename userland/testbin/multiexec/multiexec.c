@@ -158,6 +158,7 @@ spawn(int njobs)
 			warn("execv");
 			_exit(1);
 		}
+		printf("Here %d\n", i);
 	}
 
 	semopen(&s1);
