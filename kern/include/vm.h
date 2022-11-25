@@ -53,7 +53,10 @@ struct coremap_entry{
     vaddr_t vaddr;
     int status;
     size_t size;
+    struct addrspace *as;
 };
+
+paddr_t get_phys_page(struct addrspace *as, vaddr_t va);
 /* Initialization function */
 void vm_bootstrap(void);
 

@@ -43,6 +43,7 @@ static void initialize_coremap() {
         coremap[i].vaddr = PADDR_TO_KVADDR(i*PAGE_SIZE);
         coremap[i].status = PAGE_STATUS_FIXED;
         coremap[i].size = 1;
+        coremap[i].as = NULL;
     }
 
     //initialize coremap entries used by user
@@ -50,6 +51,7 @@ static void initialize_coremap() {
         coremap[i].vaddr = 0;
         coremap[i].status = PAGE_STATUS_FREE;
         coremap[i].size = 0;
+        coremap[i].as = NULL;
     }
 }
 
@@ -94,6 +96,7 @@ static paddr_t page_nalloc(unsigned long npages) {
         else coremap[i].size = 0;
         coremap[i].status = PAGE_STATUS_DIRTY;
         coremap[i].vaddr = PADDR_TO_KVADDR(i * PAGE_SIZE);
+        coremap[i].as = NULL;
     }    
     return (paddr_t)(first_index * PAGE_SIZE);
 }
@@ -115,6 +118,27 @@ vaddr_t alloc_kpages(unsigned npages) {
         panic("alloc_kpages - paddr is 0");
     }
     return PADDR_TO_KVADDR(paddr);
+}
+
+paddr_t get_phys_page(struct addrspace *as, vaddr_t va) {
+    spinlock_acquire(coremap_spinlock);
+    for (unsigned long i = 0; i < num_coremap_entries; i++) {
+        if (coremap[i].vaddr == 0 &&
+            coremap[i].status == PAGE_STATUS_FREE &&
+            coremap[i].size == 0 &&
+            coremap[i].as == NULL) {
+            
+            coremap[i].vaddr = va;
+            coremap[i].status = PAGE_STATUS_DIRTY;
+            coremap[i].size = 1;
+            coremap[i].as = as;
+
+            spinlock_release(coremap_spinlock);
+            return (paddr_t) (i*PAGE_SIZE);
+        }
+    }
+    spinlock_release(coremap_spinlock);
+    return 0;
 }
 
 void free_kpages(vaddr_t addr) {
