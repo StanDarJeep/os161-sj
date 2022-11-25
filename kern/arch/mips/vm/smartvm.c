@@ -9,6 +9,7 @@
 #include <addrspace.h>
 #include <vm.h>
 
+struct spinlock *coremap_spinlock;
 struct coremap_entry *coremap;
 unsigned int num_coremap_entries;
 static struct spinlock stealmem_lock = SPINLOCK_INITIALIZER;
@@ -16,6 +17,8 @@ struct coremap_entry *coremap;
 int vm_initialized = 0;
 
 static void initialize_coremap() {
+    coremap_spinlock = kmalloc(sizeof(struct spinlock));
+    spinlock_init(coremap_spinlock);
     //get ramsize and calculate number of physical pages
     paddr_t last = ram_getsize();
     num_coremap_entries = last / PAGE_SIZE;
