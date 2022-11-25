@@ -64,7 +64,7 @@ vaddr_t alloc_kpages(unsigned npages) {
     return 0;
 }
 void free_kpages(vaddr_t addr) {
-    (void)addr;
+	unsigned int page_index = (addr - MIPS_KSEG0) >> 12;
 }
 
 /* TLB shootdown handling called from interprocessor_interrupt */
