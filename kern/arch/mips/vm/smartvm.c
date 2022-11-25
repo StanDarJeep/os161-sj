@@ -11,7 +11,7 @@
 
 struct spinlock *coremap_spinlock;
 struct coremap_entry *coremap;
-unsigned int num_coremap_entries;
+unsigned int num_pages;
 static struct spinlock stealmem_lock = SPINLOCK_INITIALIZER;
 struct coremap_entry *coremap;
 int vm_initialized = 0;
@@ -25,12 +25,12 @@ static void initialize_coremap() {
     spinlock_init(coremap_spinlock);
     //get ramsize and calculate number of physical pages
     paddr_t last = ram_getsize();
-    num_coremap_entries = last / PAGE_SIZE;
-    size_t num_pages = (num_coremap_entries * sizeof(struct coremap_entry) + PAGE_SIZE - 1) / PAGE_SIZE;
+    num_pages = last / PAGE_SIZE;
+    size_t coremap_size = (num_pages * sizeof(struct coremap_entry) + PAGE_SIZE - 1) / PAGE_SIZE;
 
     //acquire physical memory for coremap
     spinlock_acquire(&stealmem_lock);
-    paddr_t paddr = ram_stealmem(num_pages);
+    paddr_t paddr = ram_stealmem(coremap_size);
     spinlock_release(&stealmem_lock);
 
     //initialize coremap
