@@ -36,17 +36,17 @@ static void initialize_coremap() {
     //initialize coremap
     coremap = (struct coremap_entry *)PADDR_TO_KVADDR(paddr);
     paddr_t first = ram_getfirstfree();
-    unsigned long first_page_index = first >> 12;
+    unsigned long first_user_page = first & PAGE_FRAME;
 
     //initialize coremap entries used by kernel
-    for (unsigned int i = 0; i < first_page_index; i++) {
+    for (unsigned int i = 0; i < first_user_page; i++) {
         coremap[i].vaddr = PADDR_TO_KVADDR(i*PAGE_SIZE);
         coremap[i].status = PAGE_STATUS_FIXED;
         coremap[i].size = 1;
     }
 
     //initialize coremap entries used by user
-    for (unsigned int i = first_page_index; i < num_coremap_entries; i++) {
+    for (unsigned int i = first_user_page; i < num_pages; i++) {
         coremap[i].vaddr = 0;
         coremap[i].status = PAGE_STATUS_FREE;
         coremap[i].size = 0;
@@ -76,7 +76,7 @@ static paddr_t page_nalloc(unsigned long npages) {
     int first_index = 0;
     unsigned long i = 0;
     //find first index of npages continuous free pages
-    while (i < num_coremap_entries - 1 && pages_left > 0) {
+    while (i < num_pages - 1 && pages_left > 0) {
         if (coremap[i].status == PAGE_STATUS_FREE) pages_left--;
         else {
             pages_left = npages;
@@ -120,7 +120,7 @@ vaddr_t alloc_kpages(unsigned npages) {
 void free_kpages(vaddr_t addr) {
 	
     // get the coremap page index from the given virtual address
-	unsigned int page_index = (addr - MIPS_KSEG0) >> 12;
+	unsigned int page_index = (addr - MIPS_KSEG0) & PAGE_FRAME;
 
 	spinlock_acquire(coremap_spinlock);
 	size_t npages = coremap[page_index].size;
