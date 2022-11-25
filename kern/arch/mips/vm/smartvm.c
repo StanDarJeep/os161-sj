@@ -11,7 +11,7 @@
 
 struct spinlock *coremap_spinlock;
 struct coremap_entry *coremap;
-unsigned int num_coremap_entries;
+unsigned int num_pages;
 static struct spinlock stealmem_lock = SPINLOCK_INITIALIZER;
 struct coremap_entry *coremap;
 int vm_initialized = 0;
@@ -25,21 +25,21 @@ static void initialize_coremap() {
     spinlock_init(coremap_spinlock);
     //get ramsize and calculate number of physical pages
     paddr_t last = ram_getsize();
-    num_coremap_entries = last / PAGE_SIZE;
-    size_t num_pages = (num_coremap_entries * sizeof(struct coremap_entry) + PAGE_SIZE - 1) / PAGE_SIZE;
+    num_pages = last / PAGE_SIZE;
+    size_t coremap_size = (num_pages * sizeof(struct coremap_entry) + PAGE_SIZE - 1) / PAGE_SIZE;
 
     //acquire physical memory for coremap
     spinlock_acquire(&stealmem_lock);
-    paddr_t paddr = ram_stealmem(num_pages);
+    paddr_t paddr = ram_stealmem(coremap_size);
     spinlock_release(&stealmem_lock);
 
     //initialize coremap
     coremap = (struct coremap_entry *)PADDR_TO_KVADDR(paddr);
     paddr_t first = ram_getfirstfree();
-    unsigned long first_page_index = first >> 12;
+    unsigned long first_user_page = (first & PAGE_FRAME) >> 12;
 
     //initialize coremap entries used by kernel
-    for (unsigned int i = 0; i < first_page_index; i++) {
+    for (unsigned int i = 0; i < first_user_page; i++) {
         coremap[i].vaddr = PADDR_TO_KVADDR(i*PAGE_SIZE);
         coremap[i].status = PAGE_STATUS_FIXED;
         coremap[i].size = 1;
@@ -47,7 +47,7 @@ static void initialize_coremap() {
     }
 
     //initialize coremap entries used by user
-    for (unsigned int i = first_page_index; i < num_coremap_entries; i++) {
+    for (unsigned int i = first_user_page; i < num_pages; i++) {
         coremap[i].vaddr = 0;
         coremap[i].status = PAGE_STATUS_FREE;
         coremap[i].size = 0;
@@ -77,15 +77,16 @@ static paddr_t page_nalloc(unsigned long npages) {
     unsigned long pages_left = npages;
     int first_index = 0;
     unsigned long i = 0;
+
     //find first index of npages continuous free pages
-    while (i < num_coremap_entries - 1 && pages_left > 0) {
+    while (i < num_pages && pages_left > 0) {
         if (coremap[i].status == PAGE_STATUS_FREE) pages_left--;
         else {
             pages_left = npages;
             first_index = i + 1;
         }
+        i++;
     }
-    
     if (pages_left != 0) {
         panic("page_nalloc - not enough continuous pages\n");
     }
@@ -144,7 +145,7 @@ paddr_t get_phys_page(struct addrspace *as, vaddr_t va) {
 void free_kpages(vaddr_t addr) {
 	
     // get the coremap page index from the given virtual address
-	unsigned int page_index = (addr - MIPS_KSEG0) >> 12;
+	unsigned int page_index = ((addr - MIPS_KSEG0) & PAGE_FRAME) >> 12;
 
 	spinlock_acquire(coremap_spinlock);
 	size_t npages = coremap[page_index].size;

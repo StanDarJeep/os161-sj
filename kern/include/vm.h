@@ -49,8 +49,17 @@
 #define PAGE_STATUS_DIRTY    2
 #define PAGE_STATUS_FIXED    3
 
-struct coremap_entry{
-    vaddr_t vaddr;
+/*
+This structure represents a physical page of memory, as well as its status, and the size in the event multiple contiguous pages need
+to be allocated. An array of coremap_entries is defined in smartvm.c
+    Valid statuses are:
+        - PAGE_STATUS_FREE: the page is free and available to be allocated
+        - PAGE_STATUS_CLEAN:
+        - PAGE_STATUS_DIRTY: the page is allocated
+        - PAGE_STATUS_FIXED: the page is reserved for kernel memory and should never be swapped
+*/
+struct coremap_entry {
+    vaddr_t vaddr; // the virtual address of the page
     int status;
     size_t size;
     struct addrspace *as;
