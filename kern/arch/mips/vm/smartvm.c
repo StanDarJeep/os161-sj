@@ -107,7 +107,17 @@ vaddr_t alloc_kpages(unsigned npages) {
     return PADDR_TO_KVADDR(paddr);
 }
 void free_kpages(vaddr_t addr) {
-    (void)addr;
+	
+    // get the coremap page index from the given virtual address
+	unsigned int page_index = (addr - MIPS_KSEG0) >> 12;
+
+	spinlock_acquire(coremap_spinlock);
+	size_t npages = coremap[page_index].size;
+	for (unsigned int i = page_index; i < page_index + npages; i++) {
+   		coremap[page_index].status = PAGE_STATUS_FREE;
+	}
+
+	spinlock_release(coremap_spinlock);
 }
 
 /* TLB shootdown handling called from interprocessor_interrupt */
