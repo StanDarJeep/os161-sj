@@ -16,6 +16,10 @@ static struct spinlock stealmem_lock = SPINLOCK_INITIALIZER;
 struct coremap_entry *coremap;
 int vm_initialized = 0;
 
+/**
+ * Helper function for vm_bootstrap
+ * Initializes coremap data structure to keep track of physcial pages
+ **/
 static void initialize_coremap() {
     coremap_spinlock = kmalloc(sizeof(struct spinlock));
     spinlock_init(coremap_spinlock);
@@ -61,12 +65,17 @@ int vm_fault(int faulttype, vaddr_t faultaddress) {
     return faulttype;
 }
 
+/**
+ * Helper function for alloc_kpages.
+ * Finds continuous npages in the coremap
+ * Returns physical address of first page
+ **/
 static paddr_t page_nalloc(unsigned long npages) {
     KASSERT(npages > 0);
     unsigned long pages_left = npages;
-    
     int first_index = 0;
     unsigned long i = 0;
+    //find first index of npages continuous free pages
     while (i < num_coremap_entries - 1 && pages_left > 0) {
         if (coremap[i].status == PAGE_STATUS_FREE) pages_left--;
         else {
@@ -79,6 +88,7 @@ static paddr_t page_nalloc(unsigned long npages) {
         panic("page_nalloc - not enough continuous pages\n");
     }
 
+    //Allocate npages to user
     for (i = first_index; i < npages + first_index; i++) {
         if (i == 0) coremap[i].size = (size_t) npages;
         else coremap[i].size = 0;
@@ -106,6 +116,7 @@ vaddr_t alloc_kpages(unsigned npages) {
     }
     return PADDR_TO_KVADDR(paddr);
 }
+
 void free_kpages(vaddr_t addr) {
 	
     // get the coremap page index from the given virtual address
