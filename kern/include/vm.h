@@ -44,10 +44,15 @@
 #define VM_FAULT_WRITE       1    /* A write was attempted */
 #define VM_FAULT_READONLY    2    /* A write to a readonly page was attempted*/
 
+#define PAGE_STATUS_FREE     0    /* physical page is free */
+#define PAGE_STATUS_CLEAN    1 
+#define PAGE_STATUS_DIRTY    2
+#define PAGE_STATUS_FIXED    3
+
 struct coremap_entry{
     vaddr_t vaddr;
-    int free;
-    int is_kernel;
+    int status;
+    size_t size;
 };
 /* Initialization function */
 void vm_bootstrap(void);

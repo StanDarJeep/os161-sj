@@ -37,15 +37,15 @@ static void initialize_coremap() {
     //initialize coremap entries used by kernel
     for (unsigned int i = 0; i < first_page_index; i++) {
         coremap[i].vaddr = PADDR_TO_KVADDR(i*PAGE_SIZE);
-        coremap[i].free = 0;
-        coremap[i].is_kernel = 1;
+        coremap[i].status = PAGE_STATUS_FIXED;
+        coremap[i].size = 1;
     }
 
     //initialize coremap entries used by user
     for (unsigned int i = first_page_index; i < num_coremap_entries; i++) {
         coremap[i].vaddr = 0;
-        coremap[i].free = 1;
-        coremap[i].is_kernel = 0;
+        coremap[i].status = PAGE_STATUS_FREE;
+        coremap[i].size = 0;
     }
 }
 
@@ -64,6 +64,11 @@ int vm_fault(int faulttype, vaddr_t faultaddress) {
 /* Allocate/free kernel heap pages (called by kmalloc/kfree) */
 vaddr_t alloc_kpages(unsigned npages) {
     (void)npages;
+    if (vm_initialized) {
+
+    } else {
+
+    }
     return 0;
 }
 void free_kpages(vaddr_t addr) {
