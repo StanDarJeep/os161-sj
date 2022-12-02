@@ -9,56 +9,42 @@
 #include <addrspace.h>
 #include <vm.h>
 
-static struct spinlock coremap_spinlock = SPINLOCK_INITIALIZER;
-struct coremap_entry *coremap;
-paddr_t coremap_paddr;
-unsigned long num_pages;
-static struct spinlock stealmem_lock = SPINLOCK_INITIALIZER;
-int vm_initialized = 0;
+
+struct coremap_entry *coremap;                                   // coremap representation
+paddr_t coremap_paddr;                                           // physical address of coremap base
+unsigned long num_pages;                                         // total number of physical memory pages
+static struct spinlock stealmem_lock = SPINLOCK_INITIALIZER;     // stealmem lock to be used before vm initialization 
+static struct spinlock coremap_spinlock = SPINLOCK_INITIALIZER;  // coremap lock to be used after vm initialization
+int vm_initialized = 0;                                          // boolean to keep track of vm initialization
 
 /**
  * Helper function for vm_bootstrap
  * Initializes coremap data structure to keep track of physcial pages
  **/
 static void initialize_coremap() {
-    /*coremap_spinlock = kmalloc(sizeof(struct spinlock));
-    spinlock_init(coremap_spinlock);*/
-    //get ramsize and calculate number of physical pages
+
+    // Get ramsize and calculate number of physical pages
     paddr_t last = ram_getsize();
     paddr_t first = ram_getfirstfree();
     
     num_pages = ((last - first) / PAGE_SIZE) + 1;
-    size_t coremap_size = (num_pages * sizeof(struct coremap_entry)) / PAGE_SIZE + 1;
-    kprintf("reached\n");
-    //acquire physical memory for coremap
-    /*spinlock_acquire(&stealmem_lock);
-    paddr_t paddr = ram_stealmem(coremap_size);
-    spinlock_release(&stealmem_lock);*/
-    kprintf("reached 2\n");
+    unsigned long coremap_size = (num_pages * sizeof(struct coremap_entry)) / PAGE_SIZE + 1;
 
-    //initialize coremap
+    // Initialize coremap
     coremap_paddr = first + PAGE_SIZE - (first % PAGE_SIZE);
     coremap = (struct coremap_entry *)PADDR_TO_KVADDR(coremap_paddr);
-    //unsigned long first_user_page = (first & PAGE_FRAME) >> 12;
-    kprintf("coremap size: %d\n", coremap_size);
 
-    //initialize coremap entries used by kernel
-    for (unsigned int i = 0; i < coremap_size; i++) {
-        //kprintf("reached 3\n");
-        //coremap[i].vaddr = PADDR_TO_KVADDR(i*PAGE_SIZE);
+    // Initialize fixed coremap entries used by kernel
+    for (unsigned long i = 0; i < coremap_size; i++) {
+        coremap[i].vaddr = PADDR_TO_KVADDR(i*PAGE_SIZE);
         coremap[i].status = PAGE_STATUS_FIXED;
-        //coremap[i].size = 1;
-        //coremap[i].as = NULL;
     }
-    kprintf("coremap size: %d\n", coremap_size);
-    kprintf("num pages: %lu\n", num_pages);
-    //initialize coremap entries used by user
-    for (unsigned int i = coremap_size; i < num_pages; i++) {
-        //kprintf("reached 4\n");
-        //coremap[i].vaddr = 0;
+
+    // Initialize free coremap entries used by user
+    for (unsigned long i = coremap_size; i < num_pages; i++) {
+        coremap[i].vaddr = 0;
         coremap[i].status = PAGE_STATUS_FREE;
-        //coremap[i].size = 0;
-        //coremap[i].as = NULL;
+        coremap[i].size = 0;
     }
 }
 
@@ -85,7 +71,7 @@ static paddr_t page_nalloc(unsigned long npages) {
     unsigned long first_index = 0;
     unsigned long i = 0;
 
-    //find first index of npages continuous free pages
+    // Find the first index of npages continuous free pages
     while (i < num_pages && pages_left > 0) {
         if (coremap[i].status == PAGE_STATUS_FREE) pages_left--;
         else {
@@ -98,25 +84,20 @@ static paddr_t page_nalloc(unsigned long npages) {
         panic("page_nalloc - not enough continuous pages\n");
     }
 
-    //Allocate npages to user
+    // Allocate npages to user starting from the first index
     for (i = first_index; i < npages + first_index; i++) {
         if (i == first_index) {
-            coremap[i].size = (size_t) npages;
-            coremap[i].vaddr = PADDR_TO_KVADDR(i * PAGE_SIZE);
+            coremap[i].size = npages;
         }
         else coremap[i].size = 0;
         coremap[i].status = PAGE_STATUS_DIRTY;
-        //coremap[i].vaddr = PADDR_TO_KVADDR(i * PAGE_SIZE);
-        //coremap[i].as = NULL;
+        coremap[i].vaddr = PADDR_TO_KVADDR(i * PAGE_SIZE + coremap_paddr);
     }
 
-    paddr_t first_index_paddr = first_index * PAGE_SIZE + coremap_paddr;
-    bzero((void *)PADDR_TO_KVADDR(first_index_paddr), npages * PAGE_SIZE);
-
-    return first_index_paddr;
+    return first_index * PAGE_SIZE + coremap_paddr;
 }
 
-/* Allocate/free kernel heap pages (called by kmalloc/kfree) */
+/* Allocate kernel heap pages (called by kmalloc) */
 vaddr_t alloc_kpages(unsigned npages) {
     paddr_t paddr;
     if (vm_initialized) {
@@ -135,44 +116,17 @@ vaddr_t alloc_kpages(unsigned npages) {
     return PADDR_TO_KVADDR(paddr);
 }
 
-/*paddr_t get_phys_page(struct addrspace *as, vaddr_t va) {
-    spinlock_acquire(&coremap_spinlock);
-    for (unsigned long i = 0; i < num_pages; i++) {
-        if (coremap[i].vaddr == 0 &&
-            coremap[i].status == PAGE_STATUS_FREE &&
-            coremap[i].size == 0 &&
-            coremap[i].as == NULL) {
-            
-            coremap[i].vaddr = va;
-            coremap[i].status = PAGE_STATUS_DIRTY;
-            coremap[i].size = 1;
-            coremap[i].as = as;
-
-            spinlock_release(&coremap_spinlock);
-            return (paddr_t) (i*PAGE_SIZE);
-        }
-    }
-    spinlock_release(&coremap_spinlock);
-    return 0;
-}*/
-
+/* Free kernel heap pages (called by kfree) */
 void free_kpages(vaddr_t addr) {
 	
-    // get the coremap page index from the given virtual address
-	/*unsigned int page_index = ((addr - MIPS_KSEG0) & PAGE_FRAME) >> 12;
-
-	spinlock_acquire(&coremap_spinlock);
-	size_t npages = coremap[page_index].size;
-	for (unsigned int i = page_index; i < page_index + npages; i++) {
-   		coremap[page_index].status = PAGE_STATUS_FREE;
-	}
-
-	spinlock_release(&coremap_spinlock);*/
+    // Search through coremap and find matching virtual address
     spinlock_acquire(&coremap_spinlock);
     for (unsigned long i = 0; i < num_pages; i++) {
         if (coremap[i].vaddr == addr) {
+
+            // Free pages based on the virtual address' coremap size
             for (unsigned long j = i; j < coremap[i].size + i; j++) {
-                //coremap[i].vaddr = 0;
+                coremap[i].vaddr = 0;
                 coremap[i].status = PAGE_STATUS_FREE;
                 coremap[i].size = 0;
             }
