@@ -60,12 +60,10 @@ to be allocated. An array of coremap_entries is defined in smartvm.c
 */
 struct coremap_entry {
     vaddr_t vaddr; // the virtual address of the page
-    int status;
-    size_t size;
-    struct addrspace *as;
+    int status;    // page status
+    size_t size;   // size of the contiguous page allocation, set in page_nalloc
 };
 
-paddr_t get_phys_page(struct addrspace *as, vaddr_t va);
 /* Initialization function */
 void vm_bootstrap(void);
 
